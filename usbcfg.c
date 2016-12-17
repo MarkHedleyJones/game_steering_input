@@ -38,9 +38,9 @@
 
 static const uint8_t hid_device_descriptor_data[] = {
   USB_DESC_DEVICE       (0x0200,        /* bcdUSB (1.1).                    						*/
-                         0xff,          /* bDeviceClass (in interface).     						*/
-                         0xff,          /* bDeviceSubClass.                 						*/
-                         0xff,          /* bDeviceProtocol.                 						*/
+                         0x00,          /* bDeviceClass (in interface).     						*/
+                         0x00,          /* bDeviceSubClass.                 						*/
+                         0x00,          /* bDeviceProtocol.                 						*/
                          0x40,          /* bMaxPacketSize. Maximum Packet Size for Zero Endpoint (8,16,32,64) 		*/
                          0x045e,        /* idVendor (ST). Assigned by USB.org 						*/
                          0x028e,        /* idProduct. Assigned by the manufacture 					*/
