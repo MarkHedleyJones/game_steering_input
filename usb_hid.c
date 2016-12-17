@@ -1,9 +1,9 @@
-/* 
+/*
     USB-HID Gamepad for ChibiOS/RT
     Copyright (C) 2014, +inf Wenzheng Xu.
-    
+
     EMAIL: wx330@nyu.edu
-    
+
     This piece of code is FREE SOFTWARE and is released
     under the Apache License, Version 2.0 (the "License");
 */
@@ -27,8 +27,10 @@
 
 
 /* CHECK IT!!! */
-hid_data hid_in_data={0,0,0};
-hid_data hid_out_data={0,0,0};
+hid_data_in hid_in_data={0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x0000, 0x0000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+hid_data_out hid_out_data={0x00};
+// hid_data hid_in_data={0,0,0};
+// hid_data hid_out_data={0,0,0};
 uint8_t usbInitState=0;
 //-----------------------------
 
@@ -41,17 +43,17 @@ void hid_recive(USBDriver *usbp) {
 }
 
 void hid_transmit(USBDriver *usbp) {
-    usbPrepareTransmit(usbp, HID_IN_EP_ADDRESS, (uint8_t *)&hid_in_data, sizeof (hid_in_data));
+  usbPrepareTransmit(usbp, HID_IN_EP_ADDRESS, (uint8_t *)&hid_in_data, sizeof (hid_in_data));
 	chSysLockFromIsr();
 	usbStartTransmitI(usbp, HID_IN_EP_ADDRESS);
-    palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
-    palClearPad(GPIOD, 14);
+  palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
+  palClearPad(GPIOD, 14);
 	chSysUnlockFromIsr();
 }
 
 //static uint8_t report_prev[64];
 
-bool_t hidRequestsHook(USBDriver *usbp){
+bool_t usb_request_hook_cb(USBDriver *usbp){
 
  const USBDescriptor *dp;
  if ((usbp->setup[0] & (USB_RTYPE_TYPE_MASK | USB_RTYPE_RECIPIENT_MASK)) ==
@@ -69,17 +71,17 @@ bool_t hidRequestsHook(USBDriver *usbp){
             return FALSE;
        }
     }
- 
+
  if ((usbp->setup[0] & (USB_RTYPE_TYPE_MASK | USB_RTYPE_RECIPIENT_MASK)) ==
        (USB_RTYPE_TYPE_CLASS | USB_RTYPE_RECIPIENT_INTERFACE)) {
     switch (usbp->setup[1]) {
     case HID_GET_REPORT_REQUEST:
       //usbSetupTransfer(usbp, (uint8_t *)&linecoding, sizeof(linecoding), NULL);
-      palSetPadMode(GPIOD, 12, PAL_MODE_OUTPUT_PUSHPULL);
-      palSetPad(GPIOD, 12);
-      hid_in_data.x=0;
-      hid_in_data.y=0;
-      hid_in_data.button=0;
+      // palSetPadMode(GPIOD, 12, PAL_MODE_OUTPUT_PUSHPULL);
+      // palSetPad(GPIOD, 12);
+      // hid_in_data.x=0;
+      // hid_in_data.y=0;
+      // hid_in_data.button=0;
       usbSetupTransfer(usbp,(uint8_t *)&hid_in_data,sizeof(hid_in_data), NULL);
       usbInitState=1;
       return TRUE;
@@ -111,7 +113,7 @@ void hidDataTransmitted(USBDriver *usbp, usbep_t ep){
    (void)ep;
    palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
    palSetPad(GPIOD, 14);
-   //hid_transmit(usbp,&hid_in_data);
+   // hid_transmit(usbp,&hid_in_data);
 }
 
 

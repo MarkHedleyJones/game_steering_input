@@ -1,9 +1,9 @@
-/* 
+/*
     USB-HID Gamepad for ChibiOS/RT
     Copyright (C) 2014, +inf Wenzheng Xu.
-    
+
     EMAIL: wx330@nyu.edu
-    
+
     This piece of code is FREE SOFTWARE and is released
     under the Apache License, Version 2.0 (the "License");
 */
@@ -152,7 +152,7 @@
   USB_DESC_BYTE(bCountryCode),\
   USB_DESC_BYTE(bNumDescriptors),\
   USB_DESC_BYTE(bDescriptorType),\
-  USB_DESC_WORD(wDescriptorLength) 
+  USB_DESC_WORD(wDescriptorLength)
 
 
 typedef enum {
@@ -161,16 +161,44 @@ typedef enum {
 	HID_STATE_STALLED
 } hid_usb_state_t;
 
-typedef struct {	
-	int8_t x;
-	int8_t y;
-	uint8_t button;
-} hid_data;
+// typedef struct {
+// 	int8_t x;
+// 	int8_t y;
+// 	uint8_t button;
+// } hid_data;
+
+typedef struct {
+  int8_t a0; // Nothing
+  int8_t a1; // Nothing
+  int8_t a2; // Buttons
+  int8_t a3; // Buttons
+  int8_t a4; // Trigger
+  int8_t a5; // Trigger
+  uint16_t a6;
+  uint16_t a7;
+  uint16_t a8;
+  uint16_t a9;
+  int8_t a10;
+  int8_t a11;
+  int8_t a12;
+  int8_t a13;
+  int8_t a14;
+  int8_t a15;
+  // int8_t a16;
+  // int8_t a17;
+  // int8_t a18;
+  // int8_t a19;
+} hid_data_in;
+
+typedef struct {
+  //Nothing to receieve
+  uint8_t something;
+} hid_data_out;
 
 extern uint8_t usbInitState;
 
-extern hid_data hid_in_data;
-extern hid_data hid_out_data;
+extern hid_data_in hid_in_data;
+extern hid_data_out hid_out_data;
 extern hid_usb_state_t hid_state;
 
 
@@ -179,7 +207,7 @@ extern "C" {
 #endif
 extern void hid_recive(USBDriver *usbp);
 extern void hid_transmit(USBDriver *usbp) ;
-extern bool_t hidRequestsHook(USBDriver *usbp);
+extern bool_t usb_request_hook_cb(USBDriver *usbp);
 extern void hidDataTransmitted(USBDriver *usbp, usbep_t ep);
 extern  void hidDataReceived(USBDriver *usbp, usbep_t ep);
 #ifdef __cplusplus
