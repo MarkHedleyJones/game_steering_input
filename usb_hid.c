@@ -27,7 +27,11 @@
 
 
 /* CHECK IT!!! */
-hid_data_in hid_in_data={0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x0000, 0x0000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+//hid_data_in hid_in_data={0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x0000, 0x0000, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+//Logitech G25
+hid_data_in hid_in_data={0x00, 0x00, 0x08, 0x00, 0x04, 0x00, 0x80, 0xff, 0xff, 0xff, 0x7d};
+
 hid_data_out hid_out_data={0x00};
 // hid_data hid_in_data={0,0,0};
 // hid_data hid_out_data={0,0,0};
@@ -39,6 +43,7 @@ void hid_recive(USBDriver *usbp) {
 	usbPrepareReceive(usbp, HID_OUT_EP_ADDRESS, (uint8_t *)&hid_out_data, sizeof (hid_out_data));
 	chSysLockFromIsr();
 	usbStartReceiveI(usbp, HID_OUT_EP_ADDRESS);
+  // palSetPad(GPIOD, 13);
 	chSysUnlockFromIsr();
 }
 
@@ -46,8 +51,8 @@ void hid_transmit(USBDriver *usbp) {
   usbPrepareTransmit(usbp, HID_IN_EP_ADDRESS, (uint8_t *)&hid_in_data, sizeof (hid_in_data));
 	chSysLockFromIsr();
 	usbStartTransmitI(usbp, HID_IN_EP_ADDRESS);
-  palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
-  palClearPad(GPIOD, 14);
+  // palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
+
 	chSysUnlockFromIsr();
 }
 
@@ -111,7 +116,7 @@ bool_t usb_request_hook_cb(USBDriver *usbp){
 void hidDataTransmitted(USBDriver *usbp, usbep_t ep){
    (void)usbp;
    (void)ep;
-   palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
+   // palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
    palSetPad(GPIOD, 14);
    // hid_transmit(usbp,&hid_in_data);
 }
@@ -121,7 +126,7 @@ void hidDataTransmitted(USBDriver *usbp, usbep_t ep){
 void hidDataReceived(USBDriver *usbp, usbep_t ep){
     (void)usbp;
     (void)ep;
-    palSetPadMode(GPIOD, 15, PAL_MODE_OUTPUT_PUSHPULL);
+    // palSetPadMode(GPIOD, 15, PAL_MODE_OUTPUT_PUSHPULL);
     palSetPad(GPIOD, 15);
 }
 

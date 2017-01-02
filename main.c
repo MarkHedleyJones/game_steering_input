@@ -86,6 +86,11 @@
 int main(void) {
 	halInit();
 	chSysInit();
+
+  palSetPadMode(GPIOD, 13, PAL_MODE_OUTPUT_PUSHPULL);
+  palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
+  palSetPadMode(GPIOD, 15, PAL_MODE_OUTPUT_PUSHPULL);
+
 	usbInitState=0;
   uint16_t count = 0;
 	usbDisconnectBus(&USBD1);
@@ -126,78 +131,121 @@ int main(void) {
 	while (TRUE) {
 		chThdSleepMilliseconds(50);
       ++count;
-      // Button 0
-      if (count % 13 == 0) hid_in_data.BYTE_BTN_A |= BIT_BTN_A;
-      else hid_in_data.BYTE_BTN_A &= ~BIT_BTN_A;
+      hid_in_data.a0 = 0x00;
+      hid_in_data.a1 = 0x00;
+      hid_in_data.a2 = 0x00;
+      hid_in_data.a3 = 0x00;
+      hid_in_data.a4 = 0x00;
+      hid_in_data.a5 = 0x00;
+      hid_in_data.a6 = 0x00;
+      hid_in_data.a7 = 0x00;
+      hid_in_data.a8 = 0x04;
+      hid_in_data.a9 = 0x00;
+      hid_in_data.a10 = 0x00;
 
-      // Button 1
-      if (count % 13 == 1) hid_in_data.BYTE_BTN_B |= BIT_BTN_B;
-      else hid_in_data.BYTE_BTN_B &= ~BIT_BTN_B;
+      //a0.1 = left-box up (dpad up)
+      //a0.2 = left-box right (dpad right)
+      //a0.3 = left-box down (dpad down)
+      //a0.4 = left-box left (dpad left)
+      //a0.5 = btn 0 (cross lower)
+      //a0.6 = btn 1 (cross left)
+      //a0.7 = btn 2 (cross right)
+      //a0.8 = btn 3 (cross top)
 
-      // Button 2
-      if (count % 13 == 2) hid_in_data.BYTE_BTN_X |= BIT_BTN_X;
-      else hid_in_data.BYTE_BTN_X &= ~BIT_BTN_X;
+      //a1.1 = btn 4 (paddle right)
+      //a1.2 = btn 5 (paddle left)
+      //a1.3 = btn 6 (wheel btn right)
+      //a1.4 = btn 7 (wheel btn left)
+      //a1.5 = btn 8 (red row - btn2)
+      //a1.6 = btn 9 (red row - btn3)
+      //a1.7 = btn 10 (red row - btn4)
+      //a1.8 = btn 11 (red row - btn1)
 
-      // Button 3
-      if (count % 13 == 3) hid_in_data.BYTE_BTN_Y |= BIT_BTN_Y;
-      else hid_in_data.BYTE_BTN_Y &= ~BIT_BTN_Y;
+      //a2.1 = btn 12 (gearstick 1)
+      //a2.2 = btn 13 (gearstick 2)
+      //a2.3 = btn 14 (gearstick 3)
+      //a2.4 = btn 15 (gearstick 4)
+      //a2.5 = btn 16 (gearstick 5)
+      //a2.6 = btn 17 (gearstick 6)
+      //a2.7 = btn 18 (gearstick 7 - reverse?)
+      //a2.8 = nill
 
-      // Button 4
-      if (count % 13 == 4) hid_in_data.BYTE_BTN_TRIGGERLEFT |= BIT_BTN_TRIGGERLEFT;
-      else hid_in_data.BYTE_BTN_TRIGGERLEFT &= ~BIT_BTN_TRIGGERLEFT;
+      //a3.1 = nill
+      //a3.2 = nill
+      //a3.3 = nill
+      //a3.4 = nill
+      //a3.5 = nill
+      //a3.6 = nill
+      //a3.7 = nill
+      //a3.8 = nill
 
-      // Button 5
-      if (count % 13 == 5) hid_in_data.BYTE_BTN_TRIGGERRIGHT |= BIT_BTN_TRIGGERRIGHT;
-      else hid_in_data.BYTE_BTN_TRIGGERRIGHT &= ~BIT_BTN_TRIGGERRIGHT;
+      // Steering wheel
+      //a4.1 = axis0
+      //a4.2 = axis0
+      //a4.3 = axis0
+      //a4.4 = axis0
+      //a4.5 = axis0
+      //a4.6 = axis0
+      //a4.7 = axis0
+      //a4.8 = axis0
 
-      // Button 6
-      if (count % 13 == 6) hid_in_data.BYTE_BACK |= BIT_BACK;
-      else hid_in_data.BYTE_BACK &= ~BIT_BACK;
+      // Accelerator
+      //a5.1 = axis2
+      //a5.2 = axis2
+      //a5.3 = axis2
+      //a5.4 = axis2
+      //a5.5 = axis2
+      //a5.6 = axis2
+      //a5.7 = axis2
+      //a5.8 = axis2
 
-      // Button 7
-      if (count % 13 == 7) hid_in_data.BYTE_START |= BIT_START;
-      else hid_in_data.BYTE_START &= ~BIT_START;
+      // Brake
+      //a6.1 = axis3
+      //a6.2 = axis3
+      //a6.3 = axis3
+      //a6.4 = axis3
+      //a6.5 = axis3
+      //a6.6 = axis3
+      //a6.7 = axis3
+      //a6.8 = axis3
 
-      // Button 8
-      // if (count % 13 == 8) hid_in_data.BYTE_BTN_MODE |= BIT_BTN_MODE;
-      // else hid_in_data.BYTE_BTN_MODE &= ~BIT_BTN_MODE;
+      // Clutch
+      //a7.1 = axis1
+      //a7.2 = axis1
+      //a7.3 = axis1
+      //a7.4 = axis1
+      //a7.5 = axis1
+      //a7.6 = axis1
+      //a7.7 = axis1
+      //a7.8 = axis1
 
-      // Button 9
-      if (count % 13 == 9) hid_in_data.BYTE_BTN_THUMBLEFT |= BIT_BTN_THUMBLEFT;
-      else hid_in_data.BYTE_BTN_THUMBLEFT &= ~BIT_BTN_THUMBLEFT;
+      //a8.1 =
+      //a8.2 =
+      //a8.3 =
+      //a8.4 =
+      //a8.5 =
+      //a8.6 =
+      //a8.7 =
+      //a8.8 =
 
-      // Button 10
-      if (count % 13 == 10) hid_in_data.BYTE_BTN_THUMBRIGHT |= BIT_BTN_THUMBRIGHT;
-      else hid_in_data.BYTE_BTN_THUMBRIGHT &= ~BIT_BTN_THUMBRIGHT;
+      //a9.1 =
+      //a9.2 =
+      //a9.3 =
+      //a9.4 =
+      //a9.5 =
+      //a9.6 =
+      //a9.7 =
+      //a9.8 =
 
-      // hid_in_data.a6 = (int16_t) -32639 + (count * 1000);
-      // hid_in_data.a7 = (int16_t) -32639 + (count * 1000);
+      //a10.1 =
+      //a10.2 =
+      //a10.3 =
+      //a10.4 =
+      //a10.5 =
+      //a10.6 =
+      //a10.7 =
+      //a10.8 =
 
-      hid_in_data.a6 = (int16_t) (32767 * sin((double) count / 2.0));
-      hid_in_data.a7 = (int16_t) (32767 * sin((double) count / 4.0));
-      hid_in_data.a8 = (int16_t) (32767 * sin((double) count / 2.0));
-      hid_in_data.a9 = (int16_t) (32767 * sin((double) count / 4.0));
-      // hid_in_data.a7 = (int16_t) -32639 + (count * 1000);
-      // hid_in_data.a8 = (int16_t) (30000 * sin((double) count / 2.0));
-      // hid_in_data.a9 = (int16_t) -32639 + (count * 1000);
-      // hid_in_data.a8 = (int16_t) sin((float) count /  2.0) * 100;
-      // hid_in_data.a8 = (int16_t) sin((float) count) * 1000;
-
-      hid_in_data.a1 = 0x14;
-
-
-
-
-      // BTN_START(count % 2);
-
-      // else start_depressed(&hid_in_data);
-
-      // if (hid_in_data.a3 == 0x10) {
-      //     hid_in_data.a3 = 0x00;
-      // }
-      // else {
-      //     hid_in_data.a3 = 0x10;
-      // }
 
       hid_transmit(&USBD1);
 
