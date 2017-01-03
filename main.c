@@ -128,17 +128,19 @@ int main(void) {
 
 	//hid_transmit(&USBD1);
 
+   double ret;
 	while (TRUE) {
 		chThdSleepMilliseconds(50);
       ++count;
+      ret = (sin(count / 20.0) * 128.0) + 128;
       hid_in_data.a0 = 0x00;
       hid_in_data.a1 = 0x00;
       hid_in_data.a2 = 0x00;
       hid_in_data.a3 = 0x00;
-      hid_in_data.a4 = 0x00;
+      hid_in_data.a4 = ((unsigned char)ret);
       hid_in_data.a5 = 0x00;
       hid_in_data.a6 = 0x00;
-      hid_in_data.a7 = 0x00;
+      hid_in_data.a7 = 255 - ((unsigned char)ret);
       hid_in_data.a8 = 0x04;
       hid_in_data.a9 = 0x00;
       hid_in_data.a10 = 0x00;
