@@ -43,7 +43,7 @@ static void adccallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
   /* Note, only in the ADC_COMPLETE state because the ADC driver fires an
      intermediate callback when the buffer is half full.*/
    data_brake =  buffer[0] / 16;
-   data_angle =  buffer[1] / 16;
+   data_angle =  buffer[1];
    data_adjust = 255 - (buffer[2] / 16);
    // uint32_t sum_x=0;
    // uint32_t sum_y=0;

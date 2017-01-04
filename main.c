@@ -63,6 +63,8 @@
 // Main
 
 #define PEDAL_AVG 2
+#define PAD_FRAC_STEER 0.15
+#define PAD_FRAC_BRAKE 0.15
 
 icucnt_t last_period;
 unsigned char data_pedal;
@@ -70,16 +72,54 @@ unsigned char pedal_val;
 uint8_t pedal_fired;
 uint8_t pedal_arr[PEDAL_AVG];
 
+uint32_t angle_max;
+uint32_t angle_min;
+
 static void icuperiodcb(ICUDriver *icup) {
   double tmp;
   palSetPad(GPIOD, 13);
   last_period = icuGetPeriod(icup);
   tmp = (double)(1.0 / (double)(last_period / 10000.0)); //freq
-  // data_pedal = (255.0 / (last_period));
   pedal_val = (uint8_t)tmp;
   pedal_fired = TRUE;
 }
 
+uint8_t steering_angle(uint32_t angle) {
+  if (angle > angle_max) {
+    angle_max = angle;
+    return 255;
+  }
+  if (angle < angle_min) {
+    angle_min = angle;
+    return 0;
+  }
+
+  uint32_t range;
+  double tmp;
+  uint8_t out;
+  range = angle_max - angle_min;
+  angle = angle - angle_min;
+
+  // Get ratio of range
+  tmp = (double)angle / (double)(range);
+
+  tmp = tmp + ((tmp - 0.5) * PAD_FRAC_STEER);
+  if (tmp > 1.0) tmp = 1.0;
+  if (tmp < 0.0) tmp = 0.0;
+  out = (uint8_t)(255 * tmp);
+
+  return out;
+
+}
+
+uint8_t brake_effort(uint32_t brake) {
+  double tmp;
+  tmp = (double)brake / 255;
+  tmp = (tmp + ((tmp - 0.5) * PAD_FRAC_BRAKE));
+  if (tmp > 1.0) tmp = 1.0;
+  if (tmp < 0.0) tmp = 0.0;
+  return (uint8_t)(255 * tmp);
+}
 
 static ICUConfig icucfg = {
   ICU_INPUT_ACTIVE_HIGH,
@@ -147,6 +187,9 @@ int main(void) {
   }
   pedal_fired = 0;
 
+  angle_max = 0;
+  angle_min = 10000000;
+
   // Indicate we're ready to run
   palSetPad(GPIOD, 15);
 
@@ -168,14 +211,13 @@ int main(void) {
 
 		chThdSleepMilliseconds(50);
     ++count;
-    ret = (sin(count / 20.0) * 128.0) + 128;
     hid_in_data.a0 = 0x00;
     hid_in_data.a1 = 0x00;
     hid_in_data.a2 = 0x00;
-    hid_in_data.a3 = data_brake;
-    hid_in_data.a4 = ((unsigned char)ret);
+    hid_in_data.a3 = 0x00;
+    hid_in_data.a4 = steering_angle(data_angle);
     hid_in_data.a5 = data_pedal;
-    hid_in_data.a6 = data_angle;
+    hid_in_data.a6 = brake_effort(data_brake);
     hid_in_data.a7 = data_adjust;
     hid_in_data.a8 = 0x04;
     hid_in_data.a9 = 0x00;
