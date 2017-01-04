@@ -122,13 +122,14 @@ int main(void) {
       /*
    * Setting up analog inputs used by the demo.
    */
-   // myADCinit();
+  myADCinit();
 
-   palSetGroupMode(GPIOA, PAL_PORT_BIT(1) | PAL_PORT_BIT(2)| PAL_PORT_BIT(3)| PAL_PORT_BIT(4)| PAL_PORT_BIT(5)| PAL_PORT_BIT(6)| PAL_PORT_BIT(7),0, PAL_MODE_INPUT);
+  palSetGroupMode(GPIOA, PAL_PORT_BIT(1) | PAL_PORT_BIT(2)| PAL_PORT_BIT(3)| PAL_PORT_BIT(4)| PAL_PORT_BIT(5)| PAL_PORT_BIT(6)| PAL_PORT_BIT(7),0, PAL_MODE_INPUT);
 
 	//hid_transmit(&USBD1);
 
-   double ret;
+  double ret;
+
 	while (TRUE) {
 		chThdSleepMilliseconds(50);
       ++count;
@@ -138,9 +139,9 @@ int main(void) {
       hid_in_data.a2 = 0x00;
       hid_in_data.a3 = 0x00;
       hid_in_data.a4 = ((unsigned char)ret);
-      hid_in_data.a5 = 0x00;
-      hid_in_data.a6 = 0x00;
-      hid_in_data.a7 = 255 - ((unsigned char)ret);
+      hid_in_data.a5 = data_brake;
+      hid_in_data.a6 = data_angle;
+      hid_in_data.a7 = 255 - data_adjust;
       hid_in_data.a8 = 0x04;
       hid_in_data.a9 = 0x00;
       hid_in_data.a10 = 0x00;
@@ -172,81 +173,18 @@ int main(void) {
       //a2.7 = btn 18 (gearstick 7 - reverse?)
       //a2.8 = nill
 
-      //a3.1 = nill
-      //a3.2 = nill
-      //a3.3 = nill
-      //a3.4 = nill
-      //a3.5 = nill
-      //a3.6 = nill
-      //a3.7 = nill
-      //a3.8 = nill
-
       // Steering wheel
-      //a4.1 = axis0
-      //a4.2 = axis0
-      //a4.3 = axis0
-      //a4.4 = axis0
-      //a4.5 = axis0
-      //a4.6 = axis0
-      //a4.7 = axis0
-      //a4.8 = axis0
+      //a4 = axis0
 
       // Accelerator
-      //a5.1 = axis2
-      //a5.2 = axis2
-      //a5.3 = axis2
-      //a5.4 = axis2
-      //a5.5 = axis2
-      //a5.6 = axis2
-      //a5.7 = axis2
-      //a5.8 = axis2
+      //a5 = axis2
 
       // Brake
-      //a6.1 = axis3
-      //a6.2 = axis3
-      //a6.3 = axis3
-      //a6.4 = axis3
-      //a6.5 = axis3
-      //a6.6 = axis3
-      //a6.7 = axis3
-      //a6.8 = axis3
+      //a6 = axis3
 
       // Clutch
-      //a7.1 = axis1
-      //a7.2 = axis1
-      //a7.3 = axis1
-      //a7.4 = axis1
-      //a7.5 = axis1
-      //a7.6 = axis1
-      //a7.7 = axis1
-      //a7.8 = axis1
+      //a7 = axis1
 
-      //a8.1 =
-      //a8.2 =
-      //a8.3 =
-      //a8.4 =
-      //a8.5 =
-      //a8.6 =
-      //a8.7 =
-      //a8.8 =
-
-      //a9.1 =
-      //a9.2 =
-      //a9.3 =
-      //a9.4 =
-      //a9.5 =
-      //a9.6 =
-      //a9.7 =
-      //a9.8 =
-
-      //a10.1 =
-      //a10.2 =
-      //a10.3 =
-      //a10.4 =
-      //a10.5 =
-      //a10.6 =
-      //a10.7 =
-      //a10.8 =
 
 
       hid_transmit(&USBD1);

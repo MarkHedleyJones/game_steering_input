@@ -1,9 +1,9 @@
-/* 
+/*
     USB-HID Gamepad for ChibiOS/RT
     Copyright (C) 2014, +inf Wenzheng Xu.
-    
+
     EMAIL: wx330@nyu.edu
-    
+
     This piece of code is FREE SOFTWARE and is released
     under the Apache License, Version 2.0 (the "License");
 */
@@ -24,8 +24,11 @@
 
 #ifndef _ADCCFG_H_
 #define _ADCCFG_H_
-extern uint32_t dataX;
-extern uint32_t dataY;
+// extern uint32_t dataX;
+// extern uint32_t dataY;
+extern uint32_t data_brake;
+extern uint32_t data_angle;
+extern uint32_t data_adjust;
 extern void myADCinit(void);
 #endif  /* _ADCCFG_H_ */
 
