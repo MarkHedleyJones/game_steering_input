@@ -1,4 +1,14 @@
 /*
+    Logitech G25 controller on STM32F407
+    Copyright (C) 2017, markjones112358.
+
+    EMAIL: markjones112358@gmail.com
+
+    This piece of code is FREE SOFTWARE and is released
+    under the Apache License, Version 2.0 (the "License");
+*/
+
+/*
     USB-HID Gamepad for ChibiOS/RT
     Copyright (C) 2014, +inf Wenzheng Xu.
 
