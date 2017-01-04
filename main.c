@@ -62,7 +62,7 @@
 
 // Main
 
-#define PEDAL_AVG 2
+#define PEDAL_AVG 4
 #define PAD_FRAC_STEER 0.15
 #define PAD_FRAC_BRAKE 0.15
 
@@ -138,6 +138,7 @@ int main(void) {
   palSetPadMode(GPIOD, 13, PAL_MODE_OUTPUT_PUSHPULL);
   palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
   palSetPadMode(GPIOD, 15, PAL_MODE_OUTPUT_PUSHPULL);
+  palSetPadMode(GPIOE, 7, PAL_MODE_INPUT_PULLUP);
 
 	usbInitState=0;
   uint16_t count = 0;
@@ -182,6 +183,8 @@ int main(void) {
 
   double ret;
   double tmp;
+  uint8_t handbrake;
+
   for (int i=0; i< PEDAL_AVG; i++) {
     pedal_arr[i] = 0;
   }
@@ -190,8 +193,10 @@ int main(void) {
   angle_max = 0;
   angle_min = 10000000;
 
+
   // Indicate we're ready to run
   palSetPad(GPIOD, 15);
+  handbrake = 0;
 
 	while (TRUE) {
 
@@ -203,7 +208,7 @@ int main(void) {
       tmp = tmp+pedal_arr[i];
     }
     tmp = tmp / (double)PEDAL_AVG;
-    tmp = tmp / 4;
+    tmp = tmp / 3.5;
     tmp = tmp * tmp;
     if (tmp > 255) tmp = 255;
     if (tmp < 0) tmp = 0;
@@ -211,8 +216,12 @@ int main(void) {
 
 		chThdSleepMilliseconds(50);
     ++count;
+
+    if (palReadPad(GPIOE, 7)) handbrake = 8;
+    else handbrake = 0;
+
     hid_in_data.a0 = 0x00;
-    hid_in_data.a1 = 0x00;
+    hid_in_data.a1 = 0x00 | handbrake;
     hid_in_data.a2 = 0x00;
     hid_in_data.a3 = 0x00;
     hid_in_data.a4 = steering_angle(data_angle);
