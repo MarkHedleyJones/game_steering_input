@@ -59,33 +59,87 @@
 #define BIT_BTN_TRIGGERRIGHT 0x02
 #define BIT_BTN_MODE 0x04
 
-// void start_press(hid_data_in *data) {
-//   data->a3 |= 0x40;
-// }
-
-// void start_depressed(hid_data_in *data) {
-//   data->a3 &= ~0x40;
-// }
-
-
-// static WORKING_AREA(waThread1, 128);
-// static msg_t Thread1(void *arg) {
-//   (void)arg;
-//   chRegSetThreadName("blinker");
-//   while (TRUE) {
-//     palClearPad(GPIOD, 15);
-//     chThdSleepMilliseconds(50);
-//     palSetPad(GPIOD, 15);
-//     chThdSleepMilliseconds(50);
-//   }
-//   return (msg_t)0;
-// }
 
 // Main
+
+#define PEDAL_AVG 4
+#define PAD_FRAC_STEER 0.15
+#define PAD_FRAC_BRAKE 0.15
+
+icucnt_t last_period;
+unsigned char data_pedal;
+unsigned char pedal_val;
+uint8_t pedal_fired;
+uint8_t pedal_arr[PEDAL_AVG];
+
+uint32_t angle_max;
+uint32_t angle_min;
+
+static void icuperiodcb(ICUDriver *icup) {
+  double tmp;
+  palSetPad(GPIOD, 13);
+  last_period = icuGetPeriod(icup);
+  tmp = (double)(1.0 / (double)(last_period / 10000.0)); //freq
+  pedal_val = (uint8_t)tmp;
+  pedal_fired = TRUE;
+}
+
+uint8_t steering_angle(uint32_t angle) {
+  if (angle > angle_max) {
+    angle_max = angle;
+    return 255;
+  }
+  if (angle < angle_min) {
+    angle_min = angle;
+    return 0;
+  }
+
+  uint32_t range;
+  double tmp;
+  uint8_t out;
+  range = angle_max - angle_min;
+  angle = angle - angle_min;
+
+  // Get ratio of range
+  tmp = (double)angle / (double)(range);
+
+  tmp = tmp + ((tmp - 0.5) * PAD_FRAC_STEER);
+  if (tmp > 1.0) tmp = 1.0;
+  if (tmp < 0.0) tmp = 0.0;
+  out = (uint8_t)(255 * tmp);
+
+  return out;
+
+}
+
+uint8_t brake_effort(uint32_t brake) {
+  double tmp;
+  tmp = (double)brake / 255;
+  tmp = (tmp + ((tmp - 0.5) * PAD_FRAC_BRAKE));
+  if (tmp > 1.0) tmp = 1.0;
+  if (tmp < 0.0) tmp = 0.0;
+  return (uint8_t)(255 * tmp);
+}
+
+static ICUConfig icucfg = {
+  ICU_INPUT_ACTIVE_HIGH,
+  10000,                                    /* 10kHz ICU clock frequency.   */
+  NULL,
+  icuperiodcb,
+  NULL,
+  ICU_CHANNEL_1,
+  0
+};
 
 int main(void) {
 	halInit();
 	chSysInit();
+
+  palSetPadMode(GPIOD, 13, PAL_MODE_OUTPUT_PUSHPULL);
+  palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
+  palSetPadMode(GPIOD, 15, PAL_MODE_OUTPUT_PUSHPULL);
+  palSetPadMode(GPIOE, 7, PAL_MODE_INPUT_PULLUP);
+
 	usbInitState=0;
   uint16_t count = 0;
 	usbDisconnectBus(&USBD1);
@@ -109,6 +163,10 @@ int main(void) {
 	// chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
   // chThdCreateStatic(waThread2, sizeof(waThread2), NORMALPRIO, Thread2, NULL);
 
+  icuStart(&ICUD3, &icucfg);
+  palSetPadMode(GPIOC, 6, PAL_MODE_ALTERNATE(2));
+  icuEnable(&ICUD3);
+  chThdSleepMilliseconds(200);
 
 	/*
 	 * Normal main() thread activity, in this demo it does nothing except
@@ -117,87 +175,103 @@ int main(void) {
       /*
    * Setting up analog inputs used by the demo.
    */
-   // myADCinit();
+  myADCinit();
 
-   palSetGroupMode(GPIOA, PAL_PORT_BIT(1) | PAL_PORT_BIT(2)| PAL_PORT_BIT(3)| PAL_PORT_BIT(4)| PAL_PORT_BIT(5)| PAL_PORT_BIT(6)| PAL_PORT_BIT(7),0, PAL_MODE_INPUT);
+  palSetGroupMode(GPIOA, PAL_PORT_BIT(1) | PAL_PORT_BIT(2)| PAL_PORT_BIT(3)| PAL_PORT_BIT(4)| PAL_PORT_BIT(5)| PAL_PORT_BIT(6)| PAL_PORT_BIT(7),0, PAL_MODE_INPUT);
 
 	//hid_transmit(&USBD1);
 
+  double ret;
+  double tmp;
+  uint8_t handbrake;
+
+  for (int i=0; i< PEDAL_AVG; i++) {
+    pedal_arr[i] = 0;
+  }
+  pedal_fired = 0;
+
+  angle_max = 0;
+  angle_min = 10000000;
+
+
+  // Indicate we're ready to run
+  palSetPad(GPIOD, 15);
+  handbrake = 0;
+
 	while (TRUE) {
+
+    if (pedal_fired) pedal_arr[count % PEDAL_AVG] = pedal_val;
+    else pedal_arr[count % PEDAL_AVG] = 0;
+    pedal_fired = 0;
+    tmp = 0;
+    for (int i=0; i< PEDAL_AVG; i++) {
+      tmp = tmp+pedal_arr[i];
+    }
+    tmp = tmp / (double)PEDAL_AVG;
+    tmp = tmp / 3.5;
+    tmp = tmp * tmp;
+    if (tmp > 255) tmp = 255;
+    if (tmp < 0) tmp = 0;
+    data_pedal = (uint8_t)tmp;
+
 		chThdSleepMilliseconds(50);
-      ++count;
-      // Button 0
-      if (count % 13 == 0) hid_in_data.BYTE_BTN_A |= BIT_BTN_A;
-      else hid_in_data.BYTE_BTN_A &= ~BIT_BTN_A;
+    ++count;
 
-      // Button 1
-      if (count % 13 == 1) hid_in_data.BYTE_BTN_B |= BIT_BTN_B;
-      else hid_in_data.BYTE_BTN_B &= ~BIT_BTN_B;
+    if (palReadPad(GPIOE, 7)) handbrake = 8;
+    else handbrake = 0;
 
-      // Button 2
-      if (count % 13 == 2) hid_in_data.BYTE_BTN_X |= BIT_BTN_X;
-      else hid_in_data.BYTE_BTN_X &= ~BIT_BTN_X;
+    hid_in_data.a0 = 0x00;
+    hid_in_data.a1 = 0x00 | handbrake;
+    hid_in_data.a2 = 0x00;
+    hid_in_data.a3 = 0x00;
+    hid_in_data.a4 = steering_angle(data_angle);
+    hid_in_data.a5 = data_pedal;
+    hid_in_data.a6 = brake_effort(data_brake);
+    hid_in_data.a7 = data_adjust;
+    hid_in_data.a8 = 0x04;
+    hid_in_data.a9 = 0x00;
+    hid_in_data.a10 = 0x00;
 
-      // Button 3
-      if (count % 13 == 3) hid_in_data.BYTE_BTN_Y |= BIT_BTN_Y;
-      else hid_in_data.BYTE_BTN_Y &= ~BIT_BTN_Y;
+    //a0.1 = left-box up (dpad up)
+    //a0.2 = left-box right (dpad right)
+    //a0.3 = left-box down (dpad down)
+    //a0.4 = left-box left (dpad left)
+    //a0.5 = btn 0 (cross lower)
+    //a0.6 = btn 1 (cross left)
+    //a0.7 = btn 2 (cross right)
+    //a0.8 = btn 3 (cross top)
 
-      // Button 4
-      if (count % 13 == 4) hid_in_data.BYTE_BTN_TRIGGERLEFT |= BIT_BTN_TRIGGERLEFT;
-      else hid_in_data.BYTE_BTN_TRIGGERLEFT &= ~BIT_BTN_TRIGGERLEFT;
+    //a1.1 = btn 4 (paddle right)
+    //a1.2 = btn 5 (paddle left)
+    //a1.3 = btn 6 (wheel btn right)
+    //a1.4 = btn 7 (wheel btn left)
+    //a1.5 = btn 8 (red row - btn2)
+    //a1.6 = btn 9 (red row - btn3)
+    //a1.7 = btn 10 (red row - btn4)
+    //a1.8 = btn 11 (red row - btn1)
 
-      // Button 5
-      if (count % 13 == 5) hid_in_data.BYTE_BTN_TRIGGERRIGHT |= BIT_BTN_TRIGGERRIGHT;
-      else hid_in_data.BYTE_BTN_TRIGGERRIGHT &= ~BIT_BTN_TRIGGERRIGHT;
+    //a2.1 = btn 12 (gearstick 1)
+    //a2.2 = btn 13 (gearstick 2)
+    //a2.3 = btn 14 (gearstick 3)
+    //a2.4 = btn 15 (gearstick 4)
+    //a2.5 = btn 16 (gearstick 5)
+    //a2.6 = btn 17 (gearstick 6)
+    //a2.7 = btn 18 (gearstick 7 - reverse?)
+    //a2.8 = nill
 
-      // Button 6
-      if (count % 13 == 6) hid_in_data.BYTE_BACK |= BIT_BACK;
-      else hid_in_data.BYTE_BACK &= ~BIT_BACK;
+    // Steering wheel
+    //a4 = axis0
 
-      // Button 7
-      if (count % 13 == 7) hid_in_data.BYTE_START |= BIT_START;
-      else hid_in_data.BYTE_START &= ~BIT_START;
+    // Accelerator
+    //a5 = axis2
 
-      // Button 8
-      // if (count % 13 == 8) hid_in_data.BYTE_BTN_MODE |= BIT_BTN_MODE;
-      // else hid_in_data.BYTE_BTN_MODE &= ~BIT_BTN_MODE;
+    // Brake
+    //a6 = axis3
 
-      // Button 9
-      if (count % 13 == 9) hid_in_data.BYTE_BTN_THUMBLEFT |= BIT_BTN_THUMBLEFT;
-      else hid_in_data.BYTE_BTN_THUMBLEFT &= ~BIT_BTN_THUMBLEFT;
-
-      // Button 10
-      if (count % 13 == 10) hid_in_data.BYTE_BTN_THUMBRIGHT |= BIT_BTN_THUMBRIGHT;
-      else hid_in_data.BYTE_BTN_THUMBRIGHT &= ~BIT_BTN_THUMBRIGHT;
-
-      // hid_in_data.a6 = (int16_t) -32639 + (count * 1000);
-      // hid_in_data.a7 = (int16_t) -32639 + (count * 1000);
-
-      hid_in_data.a6 = (int16_t) (32767 * sin((double) count / 2.0));
-      hid_in_data.a7 = (int16_t) (32767 * sin((double) count / 4.0));
-      hid_in_data.a8 = (int16_t) (32767 * sin((double) count / 2.0));
-      hid_in_data.a9 = (int16_t) (32767 * sin((double) count / 4.0));
-      // hid_in_data.a7 = (int16_t) -32639 + (count * 1000);
-      // hid_in_data.a8 = (int16_t) (30000 * sin((double) count / 2.0));
-      // hid_in_data.a9 = (int16_t) -32639 + (count * 1000);
-      // hid_in_data.a8 = (int16_t) sin((float) count /  2.0) * 100;
-      // hid_in_data.a8 = (int16_t) sin((float) count) * 1000;
-
-      hid_in_data.a1 = 0x14;
+    // Clutch
+    //a7 = axis1
 
 
-
-
-      // BTN_START(count % 2);
-
-      // else start_depressed(&hid_in_data);
-
-      // if (hid_in_data.a3 == 0x10) {
-      //     hid_in_data.a3 = 0x00;
-      // }
-      // else {
-      //     hid_in_data.a3 = 0x10;
-      // }
 
       hid_transmit(&USBD1);
 

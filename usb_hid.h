@@ -1,4 +1,14 @@
 /*
+    Logitech G25 controller on STM32F407
+    Copyright (C) 2017, markjones112358.
+
+    EMAIL: markjones112358@gmail.com
+
+    This piece of code is FREE SOFTWARE and is released
+    under the Apache License, Version 2.0 (the "License");
+*/
+
+/*
     USB-HID Gamepad for ChibiOS/RT
     Copyright (C) 2014, +inf Wenzheng Xu.
 
@@ -168,26 +178,33 @@ typedef enum {
 // } hid_data;
 
 typedef struct {
-  int8_t a0; // Nothing
-  int8_t a1; // Nothing
-  int8_t a2; // Buttons
-  int8_t a3; // Buttons
-  int8_t a4; // Trigger
-  int8_t a5; // Trigger
-  uint16_t a6;
-  uint16_t a7;
-  uint16_t a8;
-  uint16_t a9;
+  int8_t a0;
+  int8_t a1;
+  int8_t a2;
+  int8_t a3;
+  int8_t a4;
+  int8_t a5;
+  int8_t a6;
+  int8_t a7;
+  int8_t a8;
+  int8_t a9;
   int8_t a10;
-  int8_t a11;
-  int8_t a12;
-  int8_t a13;
-  int8_t a14;
-  int8_t a15;
-  // int8_t a16;
-  // int8_t a17;
-  // int8_t a18;
-  // int8_t a19;
+  // int8_t a0; // Nothing
+  // int8_t a1; // Nothing
+  // int8_t a2; // Buttons
+  // int8_t a3; // Buttons
+  // int8_t a4; // Trigger
+  // int8_t a5; // Trigger
+  // uint16_t a6;
+  // uint16_t a7;
+  // uint16_t a8;
+  // uint16_t a9;
+  // int8_t a10;
+  // int8_t a11;
+  // int8_t a12;
+  // int8_t a13;
+  // int8_t a14;
+  // int8_t a15;
 } hid_data_in;
 
 typedef struct {

@@ -38,16 +38,16 @@
 
 static const uint8_t hid_device_descriptor_data[] = {
   USB_DESC_DEVICE       (0x0200,        /* bcdUSB (1.1).                    						*/
-                         0xff,          /* bDeviceClass (in interface).     						*/
-                         0xff,          /* bDeviceSubClass.                 						*/
-                         0xff,          /* bDeviceProtocol.                 						*/
+                         0x00,          /* bDeviceClass (in interface).     						*/
+                         0x00,          /* bDeviceSubClass.                 						*/
+                         0x00,          /* bDeviceProtocol.                 						*/
                          0x40,          /* bMaxPacketSize. Maximum Packet Size for Zero Endpoint (8,16,32,64) 		*/
-                         0x045e,        /* idVendor (ST). Assigned by USB.org 						*/
-                         0x028e,        /* idProduct. Assigned by the manufacture 					*/
-                         0x0114,        /* bcdDevice. Device Version Number assigned by the developer 			*/
-                         0x01,             /* iManufacturer.                   						*/
+                         0x046d,        /* idVendor (ST). Assigned by USB.org 						*/
+                         0xc299,        /* idProduct. Assigned by the manufacture 					*/
+                         0x1222,        /* bcdDevice. Device Version Number assigned by the developer 			*/
+                         0x00,             /* iManufacturer.                   						*/
                          0x02,             /* iProduct.                        						*/
-                         0x03,             /* iSerialNumber.                   						*/
+                         0x00,             /* iSerialNumber.                   						*/
                          0x01)             /* bNumConfigurations. The system has only one configuration             	*/
 };
 
@@ -65,28 +65,36 @@ static const USBDescriptor hid_device_descriptor = {
  * USB Configuration Descriptor.
  */
 static const uint8_t hid_generic_joystick_reporter_data[] ={
-HID_USAGE_PAGE	(HID_USAGE_PAGE_GENERIC_DESKTOP),
-HID_USAGE		(HID_USAGE_GAMEPAD),
-HID_COLLECTION		(HID_COLLECTION_APPLICATION),
-  	HID_COLLECTION		(HID_COLLECTION_PHYSICAL),
-  	    HID_USAGE_PAGE	(HID_USAGE_PAGE_GENERIC_DESKTOP),
-  	    HID_USAGE		(HID_USAGE_X),
-  		HID_USAGE		(HID_USAGE_Y),
-		HID_LOGICAL_MINIMUM     (-127),
-		HID_LOGICAL_MAXIMUM	    (127),
-		HID_REPORT_SIZE		(8),
-		HID_REPORT_COUNT	(2),
-		HID_INPUT	(HID_INPUT_DATA_VAR_ABS),
-        HID_USAGE_PAGE(HID_USAGE_PAGE_BUTTON),
-	    HID_USAGE_MINIMUM(HID_USAGE_BUTTON1),
-  	    HID_USAGE_MAXIMUM(HID_USAGE_BUTTON8),
-	    HID_LOGICAL_MINIMUM     (0),
-	    HID_LOGICAL_MAXIMUM	    (1),
-	    HID_REPORT_SIZE		(1),
-	    HID_REPORT_COUNT	(8),
-	    HID_INPUT	(HID_INPUT_DATA_VAR_ABS),
-	HID_END_COLLECTION ,
-HID_END_COLLECTION,
+// HID_USAGE_PAGE	(HID_USAGE_PAGE_GENERIC_DESKTOP),
+// HID_USAGE		(HID_USAGE_JOYSTICK),
+// HID_COLLECTION		(HID_COLLECTION_APPLICATION),
+//   	HID_COLLECTION		(HID_COLLECTION_PHYSICAL),
+//   	    HID_USAGE_PAGE	(HID_USAGE_PAGE_GENERIC_DESKTOP),
+//   	    HID_USAGE		(HID_USAGE_X),
+//   		HID_USAGE		(HID_USAGE_Y),
+// 		HID_LOGICAL_MINIMUM     (-127),
+// 		HID_LOGICAL_MAXIMUM	    (127),
+// 		HID_REPORT_SIZE		(8),
+// 		HID_REPORT_COUNT	(2),
+// 		HID_INPUT	(HID_INPUT_DATA_VAR_ABS),
+//         HID_USAGE_PAGE(HID_USAGE_PAGE_BUTTON),
+// 	    HID_USAGE_MINIMUM(HID_USAGE_BUTTON1),
+//   	    HID_USAGE_MAXIMUM(HID_USAGE_BUTTON8),
+// 	    HID_LOGICAL_MINIMUM     (0),
+// 	    HID_LOGICAL_MAXIMUM	    (1),
+// 	    HID_REPORT_SIZE		(1),
+// 	    HID_REPORT_COUNT	(8),
+// 	    HID_INPUT	(HID_INPUT_DATA_VAR_ABS),
+// 	HID_END_COLLECTION ,
+// HID_END_COLLECTION,
+// Copied from the Logitech G25 HID Report
+  0x05, 0x01, 0x09, 0x04, 0xa1, 0x01, 0x15, 0x00, 0x25, 0x07, 0x35, 0x00, 0x46, 0x3b, 0x01, 0x65,
+  0x14, 0x09, 0x39, 0x75, 0x04, 0x95, 0x01, 0x81, 0x42, 0x65, 0x00, 0x25, 0x01, 0x45, 0x01, 0x05,
+  0x09, 0x19, 0x01, 0x29, 0x13, 0x75, 0x01, 0x95, 0x13, 0x81, 0x02, 0x06, 0x00, 0xff, 0x09, 0x01,
+  0x95, 0x03, 0x81, 0x02, 0x26, 0xff, 0x3f, 0x46, 0xff, 0x3f, 0x75, 0x0e, 0x95, 0x01, 0x05, 0x01,
+  0x09, 0x30, 0x81, 0x02, 0x26, 0xff, 0x00, 0x46, 0xff, 0x00, 0x75, 0x08, 0x95, 0x03, 0x09, 0x32,
+  0x09, 0x35, 0x09, 0x31, 0x81, 0x02, 0x06, 0x00, 0xff, 0x09, 0x04, 0x95, 0x03, 0x81, 0x02, 0x95,
+  0x07, 0x06, 0x00, 0xff, 0x09, 0x02, 0x91, 0x02, 0x95, 0x90, 0x09, 0x03, 0xb1, 0x02, 0xc0,
 };
 static const USBDescriptor hid_generic_joystick_reporter = {
   sizeof hid_generic_joystick_reporter_data,
@@ -94,130 +102,134 @@ static const USBDescriptor hid_generic_joystick_reporter = {
 };
 
 static const uint8_t hid_configuration_descriptor_data[] = {
-  /* Configuration Descriptor.*/
-  USB_DESC_CONFIGURATION(0x99,          /* wTotalLength.                    */
-                         0x04,          /* bNumInterfaces.                  */
-                         0x01,          /* bConfigurationValue.             */
-                         0x00,          /* iConfiguration.                  */
-                         0xa0,          /* bmAttributes (self powered).     */
-                         0xFa),         /* bMaxPower (50mA).                */
-  /* Interface Descriptor.*/
-  USB_DESC_INTERFACE    (0x00,          /* bInterfaceNumber.                */
-                         0x00,          /* bAlternateSetting.               */
-                         0x02,          /* bNumEndpoints.                   */
-                         0xff,          /* bInterfaceClass (Human Device Interface).   */
-                         0x5d,          /* bInterfaceSubClass  (DCDHID page 8)         */
-                         0x01,          /* bInterfaceProtocol  (DCDHID page 9)         */
-                         0x00),            /* iInterface.                                 */
+  0x09, 0x02, 0x29, 0x00, 0x01, 0x01, 0x00, 0x80, 0x28, 0x09, 0x04, 0x00, 0x00, 0x02, 0x03, 0x00,
+  0x00, 0xfe, 0x09, 0x21, 0x11, 0x01, 0x21, 0x01, 0x22, 0x6f, 0x00, 0x07, 0x05, 0x81, 0x03, 0x40,
+  0x00, 0x02, 0x07, 0x05, 0x01, 0x03, 0x40, 0x00, 0x02
 
-  // Copied from Xbox controller
-  0x11, 0x21, 0x00, 0x01, 0x01, 0x25, 0x81, 0x14, 0x00, 0x00, 0x00, 0x00, 0x13, 0x01, 0x08, 0x00, 0x00,
-  // USB_DESC_HID		    (0x0111,	/* bcdHID 		*/
-		// 	             0x00,		/* bCountryCode 	*/
-		// 	             0x01,		/* bNumDescriptor 	*/
-		// 	             0x22,		/* bDescriptorType	*/
-		// 	             sizeof(hid_generic_joystick_reporter_data)),		/* Report Descriptor Lenght. Compute it! */
-  /* Endpoint 1 Descriptor INTERRUPT IN  */
-  USB_DESC_ENDPOINT     (0x81,   	/* bEndpointAddress.   (0x80 = Direction IN) + (0x01 = Address 1)     */
-                         0x03,          /* bmAttributes (Interrupt).             		 	      */
-                         0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES                               */
-                         0x04),         /* bInterval (Polling every 50ms)                                     */
-  /* Endpoint 1 Descriptor INTERRUPT OUT */
-  USB_DESC_ENDPOINT     (0x01,       	/* bEndpointAddress.   (0x00 = Direction OUT) + (0x0q = Address 1)    */
-                         0x03,          /* bmAttributes (Interrupt).             */
-                         0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES  */
-                         0x08),         /* bInterval (Polling every 50ms)        */
-                          /* HID Report Descriptor */
-                          /* Specific Class HID Descriptor */
+  // /* Configuration Descriptor.*/
+  // USB_DESC_CONFIGURATION(0x29,          /* wTotalLength.                    */
+  //                        0x01,          /* bNumInterfaces.                  */
+  //                        0x01,          /* bConfigurationValue.             */
+  //                        0x00,          /* iConfiguration.                  */
+  //                        0x80,          /* bmAttributes (self powered).     */
+  //                        0x28),         /* bMaxPower (50mA).                */
+  // /* Interface Descriptor.*/
+  // USB_DESC_INTERFACE    (0x00,          /* bInterfaceNumber.                */
+  //                        0x00,          /* bAlternateSetting.               */
+  //                        0x02,          /* bNumEndpoints.                   */
+  //                        0x03,          /* bInterfaceClass (Human Device Interface).   */
+  //                        0x00,          /* bInterfaceSubClass  (DCDHID page 8)         */
+  //                        0x00,          /* bInterfaceProtocol  (DCDHID page 9)         */
+  //                        0xfe),            /* iInterface.                                 */
+
+  // // Copied from G25 (USB HID Descriptor)
+  // 0x09, 0x21, 0x11, 0x01, 0x21, 0x01, 0x22, 0x6f, 0x00,
+  // // USB_DESC_HID		    (0x0111,	/* bcdHID 		*/
+		// // 	             0x00,		/* bCountryCode 	*/
+		// // 	             0x01,		/* bNumDescriptor 	*/
+		// // 	             0x22,		/* bDescriptorType	*/
+		// // 	             sizeof(hid_generic_joystick_reporter_data)),		/* Report Descriptor Lenght. Compute it! */
+  // /* Endpoint 1 Descriptor INTERRUPT IN  */
+  // USB_DESC_ENDPOINT     (0x81,   	/* bEndpointAddress.   (0x80 = Direction IN) + (0x01 = Address 1)     */
+  //                        0x03,          /* bmAttributes (Interrupt).             		 	      */
+  //                        0x10,          /* wMaxPacketSize.     0x40 = 64 BYTES                               */
+  //                        0x02),         /* bInterval (Polling every 50ms)                                     */
+  // /* Endpoint 1 Descriptor INTERRUPT OUT */
+  // USB_DESC_ENDPOINT     (0x01,       	/* bEndpointAddress.   (0x00 = Direction OUT) + (0x0q = Address 1)    */
+  //                        0x03,          /* bmAttributes (Interrupt).             */
+  //                        0x10,          /* wMaxPacketSize.     0x40 = 64 BYTES  */
+  //                        0x02),         /* bInterval (Polling every 50ms)        */
+  //                         /* HID Report Descriptor */
+  //                         /* Specific Class HID Descriptor */
+
+
+  // // was commented from here
+
+
+  //   /* Interface Descriptor.*/
+  // USB_DESC_INTERFACE    (0x01,          /* bInterfaceNumber.                */
+  //                        0x00,          /* bAlternateSetting.               */
+  //                        0x04,          /* bNumEndpoints.                   */
+  //                        0xff,          /* bInterfaceClass (Human Device Interface).   */
+  //                        0x5d,          /* bInterfaceSubClass  (DCDHID page 8)         */
+  //                        0x03,          /* bInterfaceProtocol  (DCDHID page 9)         */
+  //                        0x00),            /* iInterface.                                 */
+
+  // // USB_DESC_HID        (0x0111,  /* bcdHID     */
+  // //                  0x00,    /* bCountryCode   */
+  // //                  0x01,    /* bNumDescriptor   */
+  // //                  0x22,    /* bDescriptorType  */
+  // //                  sizeof(hid_generic_joystick_reporter_data)),   /* Report Descriptor Lenght. Compute it! */
+  // // Copied from Xbox controller
+  // 0x1b, 0x21, 0x00, 0x01, 0x01, 0x01, 0x82, 0x40, 0x01, 0x02, 0x20, 0x16, 0x83, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  // /* Endpoint 2 Descriptor INTERRUPT IN  */
+  // USB_DESC_ENDPOINT     (0x82,    /* bEndpointAddress.   (0x80 = Direction IN) + (0x01 = Address 1)     */
+  //                        0x03,          /* bmAttributes (Interrupt).                        */
+  //                        0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES                               */
+  //                        0x02),         /* bInterval (Polling every 50ms)                                     */
+  // /* Endpoint 2 Descriptor INTERRUPT OUT */
+  // USB_DESC_ENDPOINT     (0x02,        /* bEndpointAddress.   (0x00 = Direction OUT) + (0x0q = Address 1)    */
+  //                        0x03,          /* bmAttributes (Interrupt).             */
+  //                        0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES  */
+  //                        0x04),         /* bInterval (Polling every 50ms)        */
+  //                         /* HID Report Descriptor */
+  //                         /* Specific Class HID Descriptor */
+
+  // /* Endpoint 3 Descriptor INTERRUPT IN  */
+  // USB_DESC_ENDPOINT     (0x83,    /* bEndpointAddress.   (0x80 = Direction IN) + (0x01 = Address 1)     */
+  //                        0x03,          /* bmAttributes (Interrupt).                        */
+  //                        0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES                               */
+  //                        0x40),         /* bInterval (Polling every 50ms)                                     */
+  // /* Endpoint 3 Descriptor INTERRUPT OUT */
+  // USB_DESC_ENDPOINT     (0x03,        /* bEndpointAddress.   (0x00 = Direction OUT) + (0x0q = Address 1)    */
+  //                        0x03,          /* bmAttributes (Interrupt).             */
+  //                        0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES  */
+  //                        0x10),         /* bInterval (Polling every 50ms)        */
+  //                         /* HID Report Descriptor */
+  //                         /* Specific Class HID Descriptor */
 
 
 
 
 
-    /* Interface Descriptor.*/
-  USB_DESC_INTERFACE    (0x01,          /* bInterfaceNumber.                */
-                         0x00,          /* bAlternateSetting.               */
-                         0x04,          /* bNumEndpoints.                   */
-                         0xff,          /* bInterfaceClass (Human Device Interface).   */
-                         0x5d,          /* bInterfaceSubClass  (DCDHID page 8)         */
-                         0x03,          /* bInterfaceProtocol  (DCDHID page 9)         */
-                         0x00),            /* iInterface.                                 */
+
+
+
+  //     /* Interface Descriptor.*/
+  // USB_DESC_INTERFACE    (0x02,          /* bInterfaceNumber.                */
+  //                        0x00,          /* bAlternateSetting.               */
+  //                        0x01,          /* bNumEndpoints.                   */
+  //                        0xff,          /* bInterfaceClass (Human Device Interface).   */
+  //                        0x5d,          /* bInterfaceSubClass  (DCDHID page 8)         */
+  //                        0x02,          /* bInterfaceProtocol  (DCDHID page 9)         */
+  //                        0x00),            /* iInterface.                                 */
 
   // USB_DESC_HID        (0x0111,  /* bcdHID     */
   //                  0x00,    /* bCountryCode   */
   //                  0x01,    /* bNumDescriptor   */
   //                  0x22,    /* bDescriptorType  */
   //                  sizeof(hid_generic_joystick_reporter_data)),   /* Report Descriptor Lenght. Compute it! */
-  // Copied from Xbox controller
-  0x1b, 0x21, 0x00, 0x01, 0x01, 0x01, 0x82, 0x40, 0x01, 0x02, 0x20, 0x16, 0x83, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  /* Endpoint 2 Descriptor INTERRUPT IN  */
-  USB_DESC_ENDPOINT     (0x82,    /* bEndpointAddress.   (0x80 = Direction IN) + (0x01 = Address 1)     */
-                         0x03,          /* bmAttributes (Interrupt).                        */
-                         0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES                               */
-                         0x02),         /* bInterval (Polling every 50ms)                                     */
-  /* Endpoint 2 Descriptor INTERRUPT OUT */
-  USB_DESC_ENDPOINT     (0x02,        /* bEndpointAddress.   (0x00 = Direction OUT) + (0x0q = Address 1)    */
-                         0x03,          /* bmAttributes (Interrupt).             */
-                         0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES  */
-                         0x04),         /* bInterval (Polling every 50ms)        */
-                          /* HID Report Descriptor */
-                          /* Specific Class HID Descriptor */
-
-  /* Endpoint 3 Descriptor INTERRUPT IN  */
-  USB_DESC_ENDPOINT     (0x83,    /* bEndpointAddress.   (0x80 = Direction IN) + (0x01 = Address 1)     */
-                         0x03,          /* bmAttributes (Interrupt).                        */
-                         0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES                               */
-                         0x40),         /* bInterval (Polling every 50ms)                                     */
-  /* Endpoint 3 Descriptor INTERRUPT OUT */
-  USB_DESC_ENDPOINT     (0x03,        /* bEndpointAddress.   (0x00 = Direction OUT) + (0x0q = Address 1)    */
-                         0x03,          /* bmAttributes (Interrupt).             */
-                         0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES  */
-                         0x10),         /* bInterval (Polling every 50ms)        */
-                          /* HID Report Descriptor */
-                          /* Specific Class HID Descriptor */
+  // /* Endpoint 2 Descriptor INTERRUPT IN  */
+  // USB_DESC_ENDPOINT     (0x84,    /* bEndpointAddress.   (0x80 = Direction IN) + (0x01 = Address 1)     */
+  //                        0x03,          /* bmAttributes (Interrupt).                        */
+  //                        0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES                               */
+  //                        0x10),         /* bInterval (Polling every 50ms)                                     */
 
 
 
 
 
 
+  //     /* Interface Descriptor.*/
+  // USB_DESC_INTERFACE    (0x03,          /* bInterfaceNumber.                */
+  //                        0x00,          /* bAlternateSetting.               */
+  //                        0x00,          /* bNumEndpoints.                   */
+  //                        0xff,          /* bInterfaceClass (Human Device Interface).   */
+  //                        0xfd,          /* bInterfaceSubClass  (DCDHID page 8)         */
+  //                        0x13,          /* bInterfaceProtocol  (DCDHID page 9)         */
+  //                        0x04),            /* iInterface.                                 */
 
-
-      /* Interface Descriptor.*/
-  USB_DESC_INTERFACE    (0x02,          /* bInterfaceNumber.                */
-                         0x00,          /* bAlternateSetting.               */
-                         0x01,          /* bNumEndpoints.                   */
-                         0xff,          /* bInterfaceClass (Human Device Interface).   */
-                         0x5d,          /* bInterfaceSubClass  (DCDHID page 8)         */
-                         0x02,          /* bInterfaceProtocol  (DCDHID page 9)         */
-                         0x00),            /* iInterface.                                 */
-
-  USB_DESC_HID        (0x0111,  /* bcdHID     */
-                   0x00,    /* bCountryCode   */
-                   0x01,    /* bNumDescriptor   */
-                   0x22,    /* bDescriptorType  */
-                   sizeof(hid_generic_joystick_reporter_data)),   /* Report Descriptor Lenght. Compute it! */
-  /* Endpoint 2 Descriptor INTERRUPT IN  */
-  USB_DESC_ENDPOINT     (0x84,    /* bEndpointAddress.   (0x80 = Direction IN) + (0x01 = Address 1)     */
-                         0x03,          /* bmAttributes (Interrupt).                        */
-                         0x20,          /* wMaxPacketSize.     0x40 = 64 BYTES                               */
-                         0x10),         /* bInterval (Polling every 50ms)                                     */
-
-
-
-
-
-
-      /* Interface Descriptor.*/
-  USB_DESC_INTERFACE    (0x03,          /* bInterfaceNumber.                */
-                         0x00,          /* bAlternateSetting.               */
-                         0x00,          /* bNumEndpoints.                   */
-                         0xff,          /* bInterfaceClass (Human Device Interface).   */
-                         0xfd,          /* bInterfaceSubClass  (DCDHID page 8)         */
-                         0x13,          /* bInterfaceProtocol  (DCDHID page 9)         */
-                         0x04),            /* iInterface.                                 */
-
-  0x06, 0x41, 0x00, 0x01, 0x01, 0x03,
+  // 0x06, 0x41, 0x00, 0x01, 0x01, 0x03,
 
 };
 
@@ -255,10 +267,10 @@ static const uint8_t hid_string1[] = {
  * Device Description string.
  */
 static const uint8_t hid_string2[] = {
-  USB_DESC_BYTE(22),                    /* bLength.                         */
+  USB_DESC_BYTE(34),                    /* bLength.                         */
   USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
-  'C', 0, 'o', 0, 'n', 0, 't', 0, 'r', 0, 'o', 0, 'l', 0, 'l', 0,
-  'e', 0, 'r', 0
+  'G', 0, '2', 0, '5', 0, ' ', 0, 'R', 0, 'a', 0, 'c', 0, 'i', 0,
+  'n', 0, 'g', 0, ' ', 0, 'W', 0, 'h', 0, 'e', 0, 'e', 0, 'l', 0
 };
 
 /*
@@ -282,9 +294,15 @@ static const uint8_t hid_string3[] = {
 
 
 static const uint8_t hid_string4[] = {
-  USB_DESC_BYTE(16),                    /* bLength.                             */
+  USB_DESC_BYTE(96),                    /* bLength.                             */
   USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                     */
-  'U', 0, 'S', 0, 'B', 0, ' ', 0, 'H', 0, 'I', 0, 'D', 0
+  //'U', 0, 'S', 0, 'B', 0, ' ', 0, 'H', 0, 'I', 0, 'D', 0
+  'N', 0, 'V', 0, '=', 0, '0', 0, '4', 0, '6', 0, 'D', 0, ',', 0,
+  'N', 0, 'P', 0, '=', 0, 'C', 0, '2', 0, '9', 0, '9', 0, ',', 0,
+  'N', 0, 'D', 0, '=', 0, '1', 0, '2', 0, '2', 0, '2', 0, ',', 0,
+  'H', 0, 'V', 0, '=', 0, '0', 0, '4', 0, '6', 0, 'D', 0, ',', 0,
+  'H', 0, 'P', 0, '=', 0, 'F', 0, 'E', 0, '0', 0, '1', 0, ',', 0,
+  'H', 0, 'D', 0, '=', 0, '0', 0, '0', 0, '0', 0, '5', 0,
 };
 
 /*
@@ -312,8 +330,8 @@ static const USBDescriptor *usb_get_descriptor_cb(USBDriver *usbp, uint8_t dtype
     //palSetPad(GPIOD, 12);
     return &hid_generic_joystick_reporter;
   case USB_DESCRIPTOR_STRING:
-    if (dindex < 5)
-      return &hid_strings[dindex];
+    // if (dindex < 5) return &hid_strings[dindex];
+    return &hid_strings[dindex % 5];
   }
   return NULL;
 }
@@ -326,7 +344,7 @@ static const USBEndpointConfig ep1config = {
   NULL,
   hidDataTransmitted,
   NULL,
-  0x0014,
+  0x000E,
   0x0000,
   &ep1instate,
   NULL,
@@ -352,7 +370,7 @@ static USBOutEndpointState ep2outstate;
 static const USBEndpointConfig ep2config = {
 	USB_EP_MODE_TYPE_INTR,
 	NULL,
-    NULL,
+  NULL,
 	hidDataReceived,
 	0x0000,
 	0x0000,
