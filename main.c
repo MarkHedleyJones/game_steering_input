@@ -59,29 +59,30 @@
 #define BIT_BTN_TRIGGERRIGHT 0x02
 #define BIT_BTN_MODE 0x04
 
-// void start_press(hid_data_in *data) {
-//   data->a3 |= 0x40;
-// }
-
-// void start_depressed(hid_data_in *data) {
-//   data->a3 &= ~0x40;
-// }
-
-
-// static WORKING_AREA(waThread1, 128);
-// static msg_t Thread1(void *arg) {
-//   (void)arg;
-//   chRegSetThreadName("blinker");
-//   while (TRUE) {
-//     palClearPad(GPIOD, 15);
-//     chThdSleepMilliseconds(50);
-//     palSetPad(GPIOD, 15);
-//     chThdSleepMilliseconds(50);
-//   }
-//   return (msg_t)0;
-// }
 
 // Main
+
+icucnt_t last_width, last_period;
+
+static void icuwidthcb(ICUDriver *icup) {
+  palSetPad(GPIOD, 13);
+  last_width = icuGetWidth(icup);
+}
+
+static void icuperiodcb(ICUDriver *icup) {
+  palClearPad(GPIOD, 13);
+  last_period = icuGetPeriod(icup);
+}
+
+static ICUConfig icucfg = {
+  ICU_INPUT_ACTIVE_HIGH,
+  10000,                                    /* 10kHz ICU clock frequency.   */
+  icuwidthcb,
+  icuperiodcb,
+  NULL,
+  ICU_CHANNEL_1,
+  0
+};
 
 int main(void) {
 	halInit();
@@ -114,6 +115,10 @@ int main(void) {
 	// chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
   // chThdCreateStatic(waThread2, sizeof(waThread2), NORMALPRIO, Thread2, NULL);
 
+  icuStart(&ICUD3, &icucfg);
+  palSetPadMode(GPIOC, 6, PAL_MODE_ALTERNATE(2));
+  icuEnable(&ICUD3);
+  chThdSleepMilliseconds(200);
 
 	/*
 	 * Normal main() thread activity, in this demo it does nothing except
