@@ -106,6 +106,18 @@ uint8_t steering_angle(uint32_t angle) {
   tmp = tmp + ((tmp - 0.5) * PAD_FRAC_STEER);
   if (tmp > 1.0) tmp = 1.0;
   if (tmp < 0.0) tmp = 0.0;
+
+  // Power it
+  tmp = (tmp - 0.5) / 0.707106781;
+  if (tmp < 0) {
+    tmp = tmp * -tmp;
+  }
+  else {
+    tmp = tmp * tmp;
+  }
+
+  tmp = tmp + 0.5;
+
   out = (uint8_t)(255 * tmp);
 
   return out;
@@ -213,22 +225,21 @@ int main(void) {
     if (tmp > 255) tmp = 255;
     if (tmp < 0) tmp = 0;
     data_pedal = (uint8_t)tmp;
+    if (palReadPad(GPIOE, 7)) handbrake = 4;
+    else handbrake = 0;
 
 		chThdSleepMilliseconds(50);
     ++count;
 
-    if (palReadPad(GPIOE, 7)) handbrake = 8;
-    else handbrake = 0;
-
-    hid_in_data.a0 = 0x00;
+    hid_in_data.a0 = 0x0F;
     hid_in_data.a1 = 0x00 | handbrake;
     hid_in_data.a2 = 0x00;
-    hid_in_data.a3 = 0x00;
-    hid_in_data.a4 = steering_angle(data_angle);
-    hid_in_data.a5 = data_pedal;
-    hid_in_data.a6 = brake_effort(data_brake);
-    hid_in_data.a7 = data_adjust;
-    hid_in_data.a8 = 0x04;
+    hid_in_data.a3 = 0xFF;
+    hid_in_data.a4 = 255 - steering_angle(data_angle);
+    hid_in_data.a5 = 255 - data_pedal;
+    hid_in_data.a6 = 255 - brake_effort(data_brake);
+    hid_in_data.a7 = 0xFF; //255 - data_adjust;
+    hid_in_data.a8 = 0x00;
     hid_in_data.a9 = 0x00;
     hid_in_data.a10 = 0x00;
 
