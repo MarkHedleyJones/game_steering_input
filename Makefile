@@ -84,7 +84,11 @@ CSRC = $(PORTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       usbcfg.c main.c usb_hid.c adccfg.c
+       adccfg.c \
+       usb_hid.c \
+       main.c \
+
+
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
