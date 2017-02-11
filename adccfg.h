@@ -34,9 +34,17 @@
 
 #ifndef _ADCCFG_H_
 #define _ADCCFG_H_
-extern uint32_t data_brake;
-extern uint32_t data_angle;
-extern uint32_t data_adjust;
+
+#define STEER_AVG 20
+
+// #ifndef STEER_AVG
+// #define STEER_AVG 10
+// #endif
+
+extern uint16_t data_brake;
+extern uint16_t data_angle_arr[STEER_AVG];
+extern uint16_t data_adjust;
+extern uint32_t adc_count;
 extern void myADCinit(void);
 #endif  /* _ADCCFG_H_ */
 

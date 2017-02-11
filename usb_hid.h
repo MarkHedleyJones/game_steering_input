@@ -69,15 +69,15 @@
 #define USB_HID_OUT_REPORT_SIZE 7
 
 // Number of OUT reports that can be stored inside the input queue
-#define USB_INPUT_QUEUE_CAPACITY 10
+#define USB_INPUT_QUEUE_CAPACITY 5
 // Number of IN reports that can be stored inside the output queue
-#define USB_OUTPUT_QUEUE_CAPACITY 10
+#define USB_OUTPUT_QUEUE_CAPACITY 5
 
 #define USB_INPUT_QUEUE_BUFFER_SIZE (USB_INPUT_QUEUE_CAPACITY * USB_HID_OUT_REPORT_SIZE)
 #define USB_OUTPUT_QUEUE_BUFFER_SIZE (USB_OUTPUT_QUEUE_CAPACITY * USB_HID_IN_REPORT_SIZE)
 
 extern uint8_t output_handb;
-extern uint8_t output_steer;
+extern uint16_t output_steer;
 extern uint8_t output_brake;
 extern uint8_t output_pedal;
 
@@ -99,16 +99,17 @@ extern uint8_t output_pedal;
  */
 struct usb_hid_in_report_s
 {
-  int8_t a0;
-  int8_t a1;
-  int8_t a2;
-  int16_t a3;
-  int8_t a4;
-  int8_t a5;
-  int8_t a6;
-  int8_t a7;
-  int8_t a8;
-  int8_t a9;
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+  uint8_t a3;
+  uint8_t a4;
+  uint8_t a5;
+  uint8_t a6;
+  uint8_t a7;
+  uint8_t a8;
+  uint8_t a9;
+  uint8_t a10;
 };
 
 /*

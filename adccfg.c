@@ -39,9 +39,10 @@
 
 static adcsample_t samples1[ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH];
 
-uint32_t data_brake;
-uint32_t data_angle;
-uint32_t data_adjust;
+// uint16_t data_brake;
+// uint16_t data_angle_arr[STEER_AVG];
+// uint16_t data_adjust;
+// uint32_t adc_count;
 
 
 /*
@@ -51,8 +52,10 @@ static void adccallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
   (void)adcp;
   (void)n;
   data_brake =  buffer[0] / 16;
-  data_angle =  buffer[1];
+  //data_angle =  buffer[1];
+  data_angle_arr[adc_count % STEER_AVG] = buffer[1] * 32;
   data_adjust = 255 - (buffer[2] / 16);
+  adc_count++;
 }
 
 static void adcerrorcallback(ADCDriver *adcp, adcerror_t err) {
@@ -113,4 +116,5 @@ void myADCinit(void){
    adcStartConversion(&ADCD1, &adcgrpcfg1, samples1, ADC_GRP1_BUF_DEPTH);
 
    chThdSleepMilliseconds(1000);
+   adc_count = 0;
 }

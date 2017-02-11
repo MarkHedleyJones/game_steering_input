@@ -25,18 +25,21 @@
 #include "ch.h"
 #include "hal.h"
 #include <math.h>
-
-uint8_t output_handb;
-uint8_t output_steer;
-uint8_t output_brake;
-uint8_t output_pedal;
-
 #include "usb_hid.h"
 #include "adccfg.h"
 
 static struct usb_hid_in_report_s usb_hid_in_report;
 static struct usb_hid_out_report_s usb_hid_out_report;
 
+uint8_t output_handb;
+uint16_t output_steer;
+uint8_t output_brake;
+uint8_t output_pedal;
+
+uint16_t data_brake;
+uint16_t data_angle_arr[STEER_AVG];
+uint16_t data_adjust;
+uint32_t adc_count;
 
 // Possible Threads
 
@@ -70,7 +73,7 @@ static struct usb_hid_out_report_s usb_hid_out_report;
 // Main
 
 #define PEDAL_AVG 50
-#define STEER_AVG 10
+// #define STEER_AVG 10
 #define PAD_FRAC_STEER 0.15
 #define PAD_FRAC_BRAKE 0.15
 
@@ -79,6 +82,7 @@ unsigned char data_pedal;
 unsigned char pedal_val;
 uint8_t pedal_fired;
 uint8_t pedal_arr[PEDAL_AVG];
+uint16_t steer_arr[STEER_AVG];
 
 
 uint32_t angle_max;
@@ -87,7 +91,7 @@ uint32_t angle_min;
 
 static void icuperiodcb(ICUDriver *icup) {
   double tmp;
-  palSetPad(GPIOD, 13);
+  // palSetPad(GPIOD, 13);
   last_period = icuGetPeriod(icup);
   tmp = (double)(1.0 / (double)(last_period / 10000.0)); //freq
   pedal_val = (uint8_t)tmp;
@@ -95,10 +99,10 @@ static void icuperiodcb(ICUDriver *icup) {
 }
 
 
-uint8_t steering_angle(uint32_t angle) {
+uint16_t steering_angle(uint16_t angle) {
   if (angle > angle_max) {
     angle_max = angle;
-    return 255;
+    return 65535;
   }
   if (angle < angle_min) {
     angle_min = angle;
@@ -107,7 +111,7 @@ uint8_t steering_angle(uint32_t angle) {
 
   uint32_t range;
   double tmp;
-  uint8_t out;
+  uint16_t out;
   range = angle_max - angle_min;
   angle = angle - angle_min;
 
@@ -118,7 +122,7 @@ uint8_t steering_angle(uint32_t angle) {
   if (tmp > 1.0) tmp = 1.0;
   if (tmp < 0.0) tmp = 0.0;
 
-  out = (uint8_t)(255 * tmp);
+  out = (uint16_t)(65535 * tmp);
 
   return out;
 
@@ -177,7 +181,7 @@ static msg_t buttonThread (void __attribute__ ((__unused__)) * arg) {
 
     // ++count;
 
-    chThdSleepMilliseconds (5);
+    chThdSleepMilliseconds (10);
   }
   return 0;
 }
@@ -234,7 +238,7 @@ int main(void) {
    * Setting up analog inputs used by the demo.
    */
 
-  palSetPad(GPIOD, 14);
+  // palSetPad(GPIOD, 14);
 
   myADCinit();
 
@@ -257,7 +261,7 @@ int main(void) {
 
 
   // Indicate we're ready to run
-  palSetPad(GPIOD, 15);
+  // palSetPad(GPIOD, 15);
 
 
 
@@ -277,8 +281,8 @@ int main(void) {
   }
   pedal_fired = 0;
 
-  angle_max = 0;
-  angle_min = 10000000;
+  angle_max = 43000*0.8;
+  angle_min = 21500*1.2;
 
 
   // Indicate we're ready to run
@@ -299,11 +303,11 @@ int main(void) {
     pedal_fired = 0;
     tmp = 0;
 
-    for (int i=0; i< PEDAL_AVG; i++) {
+    for (uint8_t i=0; i< PEDAL_AVG; i++) {
       tmp = tmp+pedal_arr[i];
     }
     tmp = tmp / (double)PEDAL_AVG;
-    tmp = tmp / 3.8;
+    // tmp = tmp / 2;
     tmp = tmp * tmp;
     if (tmp > 255) tmp = 255;
     if (tmp < 0) tmp = 0;
@@ -313,20 +317,29 @@ int main(void) {
     if (palReadPad(GPIOE, 7)) handbrake = 4;
     else handbrake = 0;
 
-    chThdSleepMilliseconds(5);
-    ++count;
+    chThdSleepMilliseconds(10);
+
 
     output_handb = 0x00 | handbrake;
-    output_steer = 255 - steering_angle(data_angle);
+    // output_steer = 65535 - steering_angle(data_angle);
+
+    tmp = 0;
+    for (uint8_t i=0; i< STEER_AVG; i++) {
+      tmp = tmp+data_angle_arr[i];
+    }
+    output_steer = (uint16_t)(tmp / (double)STEER_AVG);
+    output_steer = 65535 - steering_angle(output_steer);
+
+    // output_steer = data_angle;
     output_brake = 255 - brake_effort(data_brake);
     output_pedal = 255 - data_pedal;
 
-
+    ++count;
 
 
     if (chIQReadTimeout (&usb_input_queue, (uint8_t *) & usb_hid_out_report, USB_HID_OUT_REPORT_SIZE, 1) == USB_HID_OUT_REPORT_SIZE) {
-      if (usb_hid_out_report.a0) palClearPad(GPIOD, 15);
-      else palSetPad(GPIOD, 15);
+      // if (usb_hid_out_report.a0) palClearPad(GPIOD, 15);
+      // else palSetPad(GPIOD, 15);
       // palClearPad(GPIOD, 13);
       // Not really sure what to do in here. I don't care what comes back from the host.
     }

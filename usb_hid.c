@@ -322,6 +322,7 @@ usb_event_cb (USBDriver * usbp, usbevent_t event)
     case USB_EVENT_WAKEUP:
       return;
     case USB_EVENT_STALLED:
+      palSetPad(GPIOD, 15);
       return;
     }
 }
@@ -387,21 +388,19 @@ static const USBConfig usbcfg = {
  * OUT report from the PC, prepare the reception of the next OUT
  * report
  */
-static void
-usb_input_queue_inotify (GenericQueue __attribute__ ((__unused__)) * qp)
-{
-  if (usbGetDriverStateI (&USB_DRIVER) != USB_ACTIVE)
-    return;
+static void usb_input_queue_inotify (GenericQueue __attribute__ ((__unused__)) * qp) {
 
-  if (chIQGetEmptyI (&usb_input_queue) >= USB_HID_OUT_REPORT_SIZE)
-    {
-      chSysUnlock ();
-      usbPrepareQueuedReceive (&USB_DRIVER, USBD1_OUT_EP, &usb_input_queue,
-                   USB_HID_OUT_REPORT_SIZE);
+  if (usbGetDriverStateI (&USB_DRIVER) != USB_ACTIVE) return;
 
-      chSysLock ();
-      usbStartReceiveI (&USB_DRIVER, USBD1_OUT_EP);
-    }
+  if (chIQGetEmptyI(&usb_input_queue) >= USB_HID_OUT_REPORT_SIZE) {
+    chSysUnlock ();
+    usbPrepareQueuedReceive (&USB_DRIVER,
+                             USBD1_OUT_EP,
+                             &usb_input_queue,
+                             USB_HID_OUT_REPORT_SIZE);
+    chSysLock ();
+    usbStartReceiveI (&USB_DRIVER, USBD1_OUT_EP);
+  }
 }
 
 
@@ -410,23 +409,20 @@ usb_input_queue_inotify (GenericQueue __attribute__ ((__unused__)) * qp)
  *
  * If the transmission is not active, prepare the transmission.
  */
-static void
-usb_output_queue_onotify (GenericQueue __attribute__ ((__unused__)) * qp)
-{
-  if (usbGetDriverStateI (&USB_DRIVER) != USB_ACTIVE)
-    return;
+static void usb_output_queue_onotify (GenericQueue __attribute__ ((__unused__)) * qp) {
+  if (usbGetDriverStateI (&USB_DRIVER) != USB_ACTIVE) return;
 
-  if (!usbGetTransmitStatusI (&USB_DRIVER, USBD1_IN_EP)
-      && (chOQGetFullI (&usb_output_queue) >= USB_HID_IN_REPORT_SIZE))
-    {
-      chSysUnlock ();
+  if (!usbGetTransmitStatusI(&USB_DRIVER, USBD1_IN_EP) && (chOQGetFullI(&usb_output_queue) >= USB_HID_IN_REPORT_SIZE)) {
+    chSysUnlock ();
 
-      usbPrepareQueuedTransmit (&USB_DRIVER, USBD1_IN_EP, &usb_output_queue,
-                USB_HID_IN_REPORT_SIZE);
+    usbPrepareQueuedTransmit(&USB_DRIVER,
+                             USBD1_IN_EP,
+                             &usb_output_queue,
+                             USB_HID_IN_REPORT_SIZE);
 
-      chSysLock ();
-      usbStartTransmitI (&USB_DRIVER, USBD1_IN_EP);
-    }
+    chSysLock ();
+    usbStartTransmitI (&USB_DRIVER, USBD1_IN_EP);
+  }
 }
 
 
@@ -500,50 +496,44 @@ init_usb_driver (void)
 /*
  * Queue a IN report to be sent
  */
-int
-usb_send_hid_report (struct usb_hid_in_report_s *report)
-{
+int usb_send_hid_report (struct usb_hid_in_report_s *report) {
   int res;
 
   chSysLock ();
   if (usbGetDriverStateI (&USB_DRIVER) != USB_ACTIVE)
-    {
-      chSysUnlock ();
-      return 0;
-    }
+  {
+    chSysUnlock ();
+    return 0;
+  }
 
-  res = chOQGetEmptyI (&usb_output_queue);
+  res = chOQGetEmptyI(&usb_output_queue);
   chSysUnlock ();
 
-  if (res > USB_HID_IN_REPORT_SIZE)
-    {
-      chOQWriteTimeout (&usb_output_queue, (uint8_t *) report,
-            USB_HID_IN_REPORT_SIZE, TIME_INFINITE);
-
-      // TODO : check error condition
-
-      return 1;
-    }
-  else
-    return 0;
+  if (res > USB_HID_IN_REPORT_SIZE) {
+    chOQWriteTimeout (&usb_output_queue, (uint8_t *) report, USB_HID_IN_REPORT_SIZE, TIME_INFINITE);
+    // TODO : check error condition
+    return 1;
+  }
+  else return 0;
 }
 
 /*
  * Prepare an IN report
  */
 void usb_build_in_report (struct usb_hid_in_report_s *report) {
-  report->a0 = 0x80;
+  report->a0 = 0x08;
   report->a1 = output_handb;
   report->a2 = 0x00;
   report->a3 = output_steer;
-  // report->a4 = output_steer;
-  report->a4 = output_pedal;
-  report->a5 = output_brake;
-  report->a6 = 0xFF;
-  report->a7 = 0x79;
-  report->a8 = 0x6C;
-  report->a9 = 0x13;
+  report->a4 = (output_steer >> 8);
+  report->a5 = output_pedal;
+  report->a6 = output_brake;
+  report->a7 = 0xFF;
+  report->a8 = 0x79;
+  report->a9 = 0x6f;
+  report->a10 = 0x13;
 
-  if (output_steer > 128) palSetPad(GPIOD, 15);
-  else palClearPad(GPIOD, 15);
+  if (output_handb) palSetPad(GPIOD, 14);
+  else palClearPad(GPIOD, 14);
+  palClearPad(GPIOD, 15);
 }
