@@ -298,9 +298,9 @@
 #include "hal.h"
 
 // Size in bytes of the IN report (board->PC)
-#define USB_HID_IN_REPORT_SIZE 2
+#define USB_HID_IN_REPORT_SIZE 11
 // Size in bytes of the OUT report (PC->board)
-#define USB_HID_OUT_REPORT_SIZE 2
+#define USB_HID_OUT_REPORT_SIZE 7
 
 // Number of OUT reports that can be stored inside the input queue
 #define USB_INPUT_QUEUE_CAPACITY 2
@@ -309,6 +309,11 @@
 
 #define USB_INPUT_QUEUE_BUFFER_SIZE (USB_INPUT_QUEUE_CAPACITY * USB_HID_OUT_REPORT_SIZE)
 #define USB_OUTPUT_QUEUE_BUFFER_SIZE (USB_OUTPUT_QUEUE_CAPACITY * USB_HID_IN_REPORT_SIZE)
+
+extern uint8_t output_handb;
+extern uint8_t output_steer;
+extern uint8_t output_brake;
+extern uint8_t output_pedal;
 
 
 // extern uint32_t angle_max;
@@ -358,6 +363,7 @@ struct usb_hid_out_report_s
   uint8_t a5;
   uint8_t a6;
 };
+
 
 // The reception queue
 extern InputQueue usb_input_queue;

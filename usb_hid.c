@@ -27,6 +27,7 @@
 
 #include "usb_hid.h"
 
+
 // The USB driver to use
 #define USB_DRIVER USBD1
 
@@ -532,17 +533,17 @@ usb_send_hid_report (struct usb_hid_in_report_s *report)
  */
 void usb_build_in_report (struct usb_hid_in_report_s *report) {
   report->a0 = 0x0F;
-  report->a1 = 0x00;
+  report->a1 = output_handb;
   report->a2 = 0x00;
   report->a3 = 0xFF;
-  // report->a4 = output_angle;
-  // report->a5 = output_pedal;
-  // report->a6 = output_brake;
-  report->a4 = 0x00;
-  report->a5 = 0x00;
-  report->a6 = 0x00;
+  report->a4 = output_steer;
+  report->a5 = output_pedal;
+  report->a6 = output_brake;
   report->a7 = 0xFF;
   report->a8 = 0x00;
   report->a9 = 0x00;
   report->a10 = 0x00;
+
+  if (output_steer > 128) palSetPad(GPIOD, 15);
+  else palClearPad(GPIOD, 15);
 }

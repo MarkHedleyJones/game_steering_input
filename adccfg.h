@@ -34,21 +34,10 @@
 
 #ifndef _ADCCFG_H_
 #define _ADCCFG_H_
-
-extern uint32_t angle_max;
-extern uint32_t angle_min;
-extern uint32_t output_brake;
-extern uint32_t output_angle;
-extern uint32_t output_pedal;
-extern uint8_t  output_handbrake;
-
-// extern uint32_t dataX;
-// extern uint32_t dataY;
-// extern uint32_t output_brake;
-// extern uint32_t output_angle;
+extern uint32_t data_brake;
+extern uint32_t data_angle;
+extern uint32_t data_adjust;
 extern void myADCinit(void);
-uint8_t scale_steering_angle(uint32_t angle);
-uint8_t scale_brake_effort(uint32_t brake);
 #endif  /* _ADCCFG_H_ */
 
 /** @} */

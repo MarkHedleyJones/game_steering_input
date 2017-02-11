@@ -26,6 +26,11 @@
 #include "hal.h"
 #include <math.h>
 
+uint8_t output_handb;
+uint8_t output_steer;
+uint8_t output_brake;
+uint8_t output_pedal;
+
 #include "usb_hid.h"
 #include "adccfg.h"
 
@@ -71,19 +76,11 @@ static struct usb_hid_out_report_s usb_hid_out_report;
 icucnt_t last_period;
 unsigned char data_pedal;
 unsigned char pedal_val;
-
-
 uint8_t pedal_fired;
 uint8_t pedal_arr[PEDAL_AVG];
-uint16_t count = 0;
-
 
 uint32_t angle_max;
 uint32_t angle_min;
-uint32_t output_brake;
-uint32_t output_angle;
-uint32_t output_pedal;
-uint8_t  output_handbrake;
 
 
 static void icuperiodcb(ICUDriver *icup) {
@@ -93,6 +90,45 @@ static void icuperiodcb(ICUDriver *icup) {
   tmp = (double)(1.0 / (double)(last_period / 10000.0)); //freq
   pedal_val = (uint8_t)tmp;
   pedal_fired = TRUE;
+}
+
+
+uint8_t steering_angle(uint32_t angle) {
+  if (angle > angle_max) {
+    angle_max = angle;
+    return 255;
+  }
+  if (angle < angle_min) {
+    angle_min = angle;
+    return 0;
+  }
+
+  uint32_t range;
+  double tmp;
+  uint8_t out;
+  range = angle_max - angle_min;
+  angle = angle - angle_min;
+
+  // Get ratio of range
+  tmp = (double)angle / (double)(range);
+
+  tmp = tmp + ((tmp - 0.5) * PAD_FRAC_STEER);
+  if (tmp > 1.0) tmp = 1.0;
+  if (tmp < 0.0) tmp = 0.0;
+
+  out = (uint8_t)(255 * tmp);
+
+  return out;
+
+}
+
+uint8_t brake_effort(uint32_t brake) {
+  double tmp;
+  tmp = (double)brake / 255;
+  tmp = (tmp + ((tmp - 0.5) * PAD_FRAC_BRAKE));
+  if (tmp > 1.0) tmp = 1.0;
+  if (tmp < 0.0) tmp = 0.0;
+  return (uint8_t)(255 * tmp);
 }
 
 
@@ -106,23 +142,6 @@ static ICUConfig icucfg = {
   0
 };
 
-
-void refresh_outputs() {
-  double tmp;
-  if (pedal_fired) pedal_arr[count % PEDAL_AVG] = pedal_val;
-  else pedal_arr[count % PEDAL_AVG] = 0;
-  pedal_fired = 0;
-  tmp = 0;
-  for (int i=0; i< PEDAL_AVG; i++) {
-    tmp = tmp+pedal_arr[i];
-  }
-  tmp = tmp / (double)PEDAL_AVG;
-  tmp = tmp / 3.5;
-  tmp = tmp * tmp;
-  if (tmp > 255) tmp = 255;
-  if (tmp < 0) tmp = 0;
-  output_pedal = (uint8_t)tmp;
-}
 
 /*
  * Button thread
@@ -161,6 +180,7 @@ static msg_t buttonThread (void __attribute__ ((__unused__)) * arg) {
   return 0;
 }
 
+
 int main(void) {
 	halInit();
 	chSysInit();
@@ -179,8 +199,11 @@ int main(void) {
 
 
 
+
   // Wait until the USB is active
   while (USBD1.state != USB_ACTIVE) chThdSleepMilliseconds (1000);
+
+
 
 
 
@@ -208,6 +231,9 @@ int main(void) {
       /*
    * Setting up analog inputs used by the demo.
    */
+
+  palSetPad(GPIOD, 14);
+
   myADCinit();
 
   palSetGroupMode(GPIOA, PAL_PORT_BIT(1) | PAL_PORT_BIT(2)| PAL_PORT_BIT(3)| PAL_PORT_BIT(4)| PAL_PORT_BIT(5)| PAL_PORT_BIT(6)| PAL_PORT_BIT(7),0, PAL_MODE_INPUT);
@@ -227,6 +253,7 @@ int main(void) {
   // angle_min = 10000000;
 
 
+
   // Indicate we're ready to run
   palSetPad(GPIOD, 15);
 
@@ -239,24 +266,58 @@ int main(void) {
          NORMALPRIO, buttonThread, NULL);
 
 
+  double ret;
+  double tmp;
+  uint8_t handbrake;
+
+  for (int i=0; i< PEDAL_AVG; i++) {
+    pedal_arr[i] = 0;
+  }
+  pedal_fired = 0;
+
+  angle_max = 0;
+  angle_min = 10000000;
+
+
+  // Indicate we're ready to run
+  handbrake = 0;
+
+  uint32_t count = 0;
 
 	while (TRUE) {
 
-    if (palReadPad(GPIOE, 7)) {
-      output_handbrake = 0x04;
-      palSetPad(GPIOD, 15);
+    // refresh_outputs(count++);
+    if (pedal_fired) pedal_arr[count % PEDAL_AVG] = pedal_val;
+    else pedal_arr[count % PEDAL_AVG] = 0;
+    pedal_fired = 0;
+    tmp = 0;
+    for (int i=0; i< PEDAL_AVG; i++) {
+      tmp = tmp+pedal_arr[i];
     }
-    else {
-      output_handbrake = 0;
-      palClearPad(GPIOD, 15);
+    tmp = tmp / (double)PEDAL_AVG;
+    tmp = tmp / 3.5;
+    tmp = tmp * tmp;
+    if (tmp > 255) tmp = 255;
+    if (tmp < 0) tmp = 0;
+    data_pedal = (uint8_t)tmp;
+    if (palReadPad(GPIOE, 7)) handbrake = 4;
+    else handbrake = 0;
+
+    chThdSleepMilliseconds(50);
+    ++count;
+
+    output_handb = 0x00 | handbrake;
+    output_steer = 255 - steering_angle(data_angle);
+    output_brake = 255 - brake_effort(data_brake);
+    output_pedal = 255 - data_pedal;
+
+
+
+
+    if (chIQReadTimeout (&usb_input_queue, (uint8_t *) & usb_hid_out_report, USB_HID_OUT_REPORT_SIZE, 1) == USB_HID_OUT_REPORT_SIZE) {
+      palClearPad(GPIOD, 13);
+      // Not really sure what to do in here. I don't care what comes back from the host.
     }
-
-    refresh_outputs();
-
-    // if (chIQReadTimeout (&usb_input_queue, (uint8_t *) & usb_hid_out_report, USB_HID_OUT_REPORT_SIZE, TIME_INFINITE) == USB_HID_OUT_REPORT_SIZE) {
-    //   palSetPad(GPIOD, 13);
-    //   // Not really sure what to do in here. I don't care what comes back from the host.
-    // }
 	}
 
 }
