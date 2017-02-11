@@ -69,7 +69,8 @@ static struct usb_hid_out_report_s usb_hid_out_report;
 
 // Main
 
-#define PEDAL_AVG 4
+#define PEDAL_AVG 50
+#define STEER_AVG 10
 #define PAD_FRAC_STEER 0.15
 #define PAD_FRAC_BRAKE 0.15
 
@@ -78,6 +79,7 @@ unsigned char data_pedal;
 unsigned char pedal_val;
 uint8_t pedal_fired;
 uint8_t pedal_arr[PEDAL_AVG];
+
 
 uint32_t angle_max;
 uint32_t angle_min;
@@ -175,7 +177,7 @@ static msg_t buttonThread (void __attribute__ ((__unused__)) * arg) {
 
     // ++count;
 
-    chThdSleepMilliseconds (50);
+    chThdSleepMilliseconds (5);
   }
   return 0;
 }
@@ -284,26 +286,34 @@ int main(void) {
 
   uint32_t count = 0;
 
+  output_steer = 0;
+  output_brake = 255;
+  output_pedal = 255;
+
 	while (TRUE) {
 
     // refresh_outputs(count++);
     if (pedal_fired) pedal_arr[count % PEDAL_AVG] = pedal_val;
     else pedal_arr[count % PEDAL_AVG] = 0;
+
     pedal_fired = 0;
     tmp = 0;
+
     for (int i=0; i< PEDAL_AVG; i++) {
       tmp = tmp+pedal_arr[i];
     }
     tmp = tmp / (double)PEDAL_AVG;
-    tmp = tmp / 3.5;
+    tmp = tmp / 3.8;
     tmp = tmp * tmp;
     if (tmp > 255) tmp = 255;
     if (tmp < 0) tmp = 0;
     data_pedal = (uint8_t)tmp;
+
+
     if (palReadPad(GPIOE, 7)) handbrake = 4;
     else handbrake = 0;
 
-    chThdSleepMilliseconds(50);
+    chThdSleepMilliseconds(5);
     ++count;
 
     output_handb = 0x00 | handbrake;
@@ -315,7 +325,9 @@ int main(void) {
 
 
     if (chIQReadTimeout (&usb_input_queue, (uint8_t *) & usb_hid_out_report, USB_HID_OUT_REPORT_SIZE, 1) == USB_HID_OUT_REPORT_SIZE) {
-      palClearPad(GPIOD, 13);
+      if (usb_hid_out_report.a0) palClearPad(GPIOD, 15);
+      else palSetPad(GPIOD, 15);
+      // palClearPad(GPIOD, 13);
       // Not really sure what to do in here. I don't care what comes back from the host.
     }
 	}

@@ -532,17 +532,17 @@ usb_send_hid_report (struct usb_hid_in_report_s *report)
  * Prepare an IN report
  */
 void usb_build_in_report (struct usb_hid_in_report_s *report) {
-  report->a0 = 0x0F;
+  report->a0 = 0x80;
   report->a1 = output_handb;
   report->a2 = 0x00;
-  report->a3 = 0xFF;
-  report->a4 = output_steer;
-  report->a5 = output_pedal;
-  report->a6 = output_brake;
-  report->a7 = 0xFF;
-  report->a8 = 0x00;
-  report->a9 = 0x00;
-  report->a10 = 0x00;
+  report->a3 = output_steer;
+  // report->a4 = output_steer;
+  report->a4 = output_pedal;
+  report->a5 = output_brake;
+  report->a6 = 0xFF;
+  report->a7 = 0x79;
+  report->a8 = 0x6C;
+  report->a9 = 0x13;
 
   if (output_steer > 128) palSetPad(GPIOD, 15);
   else palClearPad(GPIOD, 15);
