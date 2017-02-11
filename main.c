@@ -107,16 +107,16 @@ uint8_t steering_angle(uint32_t angle) {
   if (tmp > 1.0) tmp = 1.0;
   if (tmp < 0.0) tmp = 0.0;
 
-  // Power it
-  tmp = (tmp - 0.5) / 0.707106781;
-  if (tmp < 0) {
-    tmp = tmp * -tmp;
-  }
-  else {
-    tmp = tmp * tmp;
-  }
+  // // Power it
+  // tmp = (tmp - 0.5) / 0.707106781;
+  // if (tmp < 0) {
+  //   tmp = tmp * -tmp;
+  // }
+  // else {
+  //   tmp = tmp * tmp;
+  // }
 
-  tmp = tmp + 0.5;
+  // tmp = tmp + 0.5;
 
   out = (uint8_t)(255 * tmp);
 
@@ -285,6 +285,7 @@ int main(void) {
 
 
       hid_transmit(&USBD1);
+      hid_receieve(&USBD1);
 
 	}
 

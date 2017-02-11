@@ -42,7 +42,7 @@
 //Logitech G25
 hid_data_in hid_in_data={0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-hid_data_out hid_out_data={0x00};
+hid_data_out hid_out_data={0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 // hid_data hid_in_data={0,0,0};
 // hid_data hid_out_data={0,0,0};
 uint8_t usbInitState=0;
@@ -50,71 +50,65 @@ uint8_t usbInitState=0;
 
 
 void hid_recive(USBDriver *usbp) {
-	usbPrepareReceive(usbp, HID_OUT_EP_ADDRESS, (uint8_t *)&hid_out_data, sizeof (hid_out_data));
+	usbPrepareReceive(usbp, HID_OUT_EP_ADDRESS, (uint8_t *)&hid_out_data, sizeof(hid_out_data));
 	chSysLockFromIsr();
 	usbStartReceiveI(usbp, HID_OUT_EP_ADDRESS);
-  // palSetPad(GPIOD, 13);
 	chSysUnlockFromIsr();
 }
 
 void hid_transmit(USBDriver *usbp) {
-  usbPrepareTransmit(usbp, HID_IN_EP_ADDRESS, (uint8_t *)&hid_in_data, sizeof (hid_in_data));
+  usbPrepareTransmit(usbp, HID_IN_EP_ADDRESS, (uint8_t *)&hid_in_data, sizeof(hid_in_data));
 	chSysLockFromIsr();
 	usbStartTransmitI(usbp, HID_IN_EP_ADDRESS);
-  // palSetPadMode(GPIOD, 14, PAL_MODE_OUTPUT_PUSHPULL);
-
 	chSysUnlockFromIsr();
 }
 
-//static uint8_t report_prev[64];
 
 bool_t usb_request_hook_cb(USBDriver *usbp){
 
- const USBDescriptor *dp;
- if ((usbp->setup[0] & (USB_RTYPE_TYPE_MASK | USB_RTYPE_RECIPIENT_MASK)) ==
-       (USB_RTYPE_TYPE_STD | USB_RTYPE_RECIPIENT_INTERFACE)) {
-       switch (usbp->setup[1]) {
-       case USB_REQ_GET_DESCRIPTOR:
-           dp = usbp->config->get_descriptor_cb(
-           usbp, usbp->setup[3], usbp->setup[2],
-           usbFetchWord(&usbp->setup[4]));
-            if (dp == NULL)
-                return FALSE;
-            usbSetupTransfer(usbp, (uint8_t *)dp->ud_string, dp->ud_size, NULL);
-            return TRUE;
-        default:
-            return FALSE;
-       }
-    }
+  const USBDescriptor *dp;
 
- if ((usbp->setup[0] & (USB_RTYPE_TYPE_MASK | USB_RTYPE_RECIPIENT_MASK)) ==
-       (USB_RTYPE_TYPE_CLASS | USB_RTYPE_RECIPIENT_INTERFACE)) {
+  if ((usbp->setup[0] & (USB_RTYPE_TYPE_MASK | USB_RTYPE_RECIPIENT_MASK)) == (USB_RTYPE_TYPE_STD | USB_RTYPE_RECIPIENT_INTERFACE)) {
     switch (usbp->setup[1]) {
-    case HID_GET_REPORT_REQUEST:
-      //usbSetupTransfer(usbp, (uint8_t *)&linecoding, sizeof(linecoding), NULL);
-      // palSetPadMode(GPIOD, 12, PAL_MODE_OUTPUT_PUSHPULL);
-      // palSetPad(GPIOD, 12);
-      // hid_in_data.x=0;
-      // hid_in_data.y=0;
-      // hid_in_data.button=0;
-      usbSetupTransfer(usbp,(uint8_t *)&hid_in_data,sizeof(hid_in_data), NULL);
-      usbInitState=1;
-      return TRUE;
-    case HID_GET_IDLE_REQUEST:
-      usbSetupTransfer(usbp,NULL,0, NULL);
-      return TRUE;
-    case HID_GET_PROTOCOL_REQUEST:
-      return TRUE;
-    case HID_SET_REPORT_REQUEST:
-      usbSetupTransfer(usbp,NULL,0, NULL);
-      return TRUE;
-    case HID_SET_IDLE_REQUEST:
-      usbSetupTransfer(usbp,NULL,0, NULL);
-      return TRUE;
-    case HID_SET_PROTOCOL_REQUEST:
-      return TRUE;
-    default:
-      return FALSE;
+        case USB_REQ_GET_DESCRIPTOR:
+          dp = usbp->config->get_descriptor_cb(
+          usbp, usbp->setup[3], usbp->setup[2],
+          usbFetchWord(&usbp->setup[4]));
+          if (dp == NULL) return FALSE;
+          usbSetupTransfer(usbp, (uint8_t *)dp->ud_string, dp->ud_size, NULL);
+          return TRUE;
+        default:
+          return FALSE;
+    }
+  }
+
+  if ((usbp->setup[0] & (USB_RTYPE_TYPE_MASK | USB_RTYPE_RECIPIENT_MASK)) == (USB_RTYPE_TYPE_CLASS | USB_RTYPE_RECIPIENT_INTERFACE)) {
+    switch (usbp->setup[1]) {
+      case HID_GET_REPORT_REQUEST:
+        //usbSetupTransfer(usbp, (uint8_t *)&linecoding, sizeof(linecoding), NULL);
+        // palSetPadMode(GPIOD, 12, PAL_MODE_OUTPUT_PUSHPULL);
+        // palSetPad(GPIOD, 12);
+        // hid_in_data.x=0;
+        // hid_in_data.y=0;
+        // hid_in_data.button=0;
+        usbSetupTransfer(usbp, (uint8_t *)&hid_in_data, sizeof(hid_in_data), NULL);
+        usbInitState=1;
+        return TRUE;
+      case HID_GET_IDLE_REQUEST:
+        usbSetupTransfer(usbp,NULL,0, NULL);
+        return TRUE;
+      case HID_GET_PROTOCOL_REQUEST:
+        return TRUE;
+        case HID_SET_REPORT_REQUEST:
+        usbSetupTransfer(usbp,NULL,0, NULL);
+        return TRUE;
+      case HID_SET_IDLE_REQUEST:
+        usbSetupTransfer(usbp,NULL,0, NULL);
+        return TRUE;
+        case HID_SET_PROTOCOL_REQUEST:
+        return TRUE;
+      default:
+        return FALSE;
     }
   }
   return FALSE;

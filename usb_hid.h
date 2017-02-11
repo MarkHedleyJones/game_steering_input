@@ -35,7 +35,7 @@
 #define _USB_HID_H_
 //#define HID_CONTROL_EP_ADDRESS	0	/* Implicit */
 #define HID_IN_EP_ADDRESS 		1	/* Interrupt. Mandatory */
-#define HID_OUT_EP_ADDRESS		2	/* Interrupt. Optional */
+#define HID_OUT_EP_ADDRESS		1	/* Interrupt. Optional */
 
 /* HID Class Specific Requests */
 #define HID_GET_REPORT_REQUEST		0x01
@@ -209,7 +209,13 @@ typedef struct {
 
 typedef struct {
   //Nothing to receieve
-  uint8_t something;
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+  uint8_t a3;
+  uint8_t a4;
+  uint8_t a5;
+  uint8_t a6;
 } hid_data_out;
 
 extern uint8_t usbInitState;
